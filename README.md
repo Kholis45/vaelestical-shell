@@ -28,7 +28,7 @@ chmod +x start-vaelestical.sh && \
 # Ubuntu/Debian/Fedora/Arch - see distro-specific commands below
 
 # 2. Clone the repository
-git clone https://github.com/your-username/vaelestical-shell.git
+git clone https://github.com/Kholis45/vaelestical-shell.git
 
 # 3. Enter directory
 cd vaelestical-shell
