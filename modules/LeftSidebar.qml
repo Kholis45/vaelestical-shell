@@ -1,227 +1,144 @@
-import QtQuick 6.0
-import QtQuick.Controls 6.0
-import QtQuick.Layouts 6.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-// ============================================================
-// MODULE A: FLOATING LEFT VERTICAL BAR & DYNAMIC POSITIONING ENGINE
-//================================================================
-// Universal Start Menu / App Launcher Trigger Icon
-// Interactive Workspace Dots Switcher
-// Quick Status Indicators Capsule
-// Quick Session Action Menu
-// Dynamic Bar Position Engine (supports top/bottom/left/right)
-// Breathing Pulse Status Dot
-//================================================================
-
-// Left Sidebar Root - positioned anchor object
-QtObject {
-    id: leftSidebar
-    property real barWidth: 56
+// MODULE A: Floating pill sidebar + workspace switcher.
+// Single-root Item. Only built-in QtQuick types.
+Item {
+    id: root
+    property string barPosition: "left" // top | bottom | left | right
+    property real cornerRadius: 20
     property int currentWorkspace: 1
-    property bool visible: true
+    property color accent: "#a8c7fa"
+    property color card: "#1a1b22"
+    property color border: "#333545"
+    property color txt1: "#e3e2e6"
+    property color txt2: "#8e9099"
+    property bool isVertical: barPosition === "left" || barPosition === "right"
 
-    // Appearance based on barPosition from main.qml
-    property variant barPosition: "left"
+    width: isVertical ? 76 : 560
+    height: isVertical ? 620 : 76
 
-    // --- START TRIGGER ICON ---
-    StartTriggerIcon {
-        id: startTrigger
-        anchors.leftMargin: 24
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        // Super+D equivalent - click triggers menu
+    function toggleVisibility() { root.visible = !root.visible }
+    function repositionBar(pos) { root.barPosition = pos }
+
+    Rectangle {
+        id: pill
+        anchors.fill: parent
+        radius: isVertical ? width / 2 : height / 2
+        color: root.card
+        opacity: 0.92
+        border.color: root.border
+        border.width: 1
+        layer.enabled: true
+        layer.smooth: true
     }
 
-    // --- WORKSPACE DOTS SWITCHER ---
-    RowLayout {
-        id: workspaceDotsRow
-        anchors { left: leftTrigger.right; leftMargin: 12; verticalCenter: parent.verticalCenter }
-        spacing: 6
+    // Vertical layout (left / right)
+    ColumnLayout {
+        anchors.centerIn: parent
+        spacing: 10
+        visible: root.isVertical
 
-        // Pill indicators for each workspace (4 workspaces typical)
+        Text { text: "V"; color: root.accent; font.bold: true; font.pointSize: 16
+            Layout.alignment: Qt.AlignHCenter }
+
         Repeater {
             model: 4
-            Component {
-                Item {
-                    id: dotItem
-                    width: 8
-                    height: 8
-                    // Circular dot with spring physics
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 8
-                        height: 8
-                        radius: 4
-                        color: leftSidebar.currentWorkspace === model.index ? leftSidebar.accentPrimary : leftSidebar.textSecondary
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: 200
-                                easing.type: Easing.OutCubic
-                            }
-                        }
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                // Dispatch hyprctl to switch workspace
-                                // hyprctl dispatch workspace [id]
-                                leftSidebar.currentWorkspace = model.index + 1
-                            }
-                        }
-                    }
-
-                    // Active/hover state with scale feedback
-                    states: [
-                        State {
-                            name: "active"
-                            PropertyChanges { target: dotRectangle; color: leftSidebar.accentPrimary }
-                        }
-                    ]
-                    Transitions {
-                        Transition {
-                            from: ""
-                            to: "active"
-                            NumberAnimation {
-                                target: dotRectangle
-                                property: "color"
-                                duration: 150
-                                easing.type: Easing.OutBack
-                            }
-                        }
-                    }
+            delegate: Rectangle {
+                required property int index
+                Layout.alignment: Qt.AlignHCenter
+                width: root.currentWorkspace === index + 1 ? 34 : 14
+                height: 14
+                radius: 7
+                color: root.currentWorkspace === index + 1 ? root.accent : "#3a3d4d"
+                Behavior on color { ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: root.currentWorkspace = parent.index + 1
                 }
             }
         }
 
-        // Breathing Pulse Status Dot (8px circle, opacity loop 1.0 to 0.3 over 1500ms)
-        Item {
-            id: breathingDot
-            anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 8 }
-            width: 8
-            height: 8
-            opacity: 1
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 1500
-                    easing.type: Easing.InOutSine
-                    loops: Animation.Infinite
-                    from: 1
-                    to: 0.3
+        Rectangle { Layout.alignment: Qt.AlignHCenter; width: 36; height: 1; color: root.border }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 6
+            Repeater {
+                model: [
+                    { t: "WiFi", tip: "Wi-Fi" },
+                    { t: "BT", tip: "Bluetooth" },
+                    { t: "VOL", tip: "Audio" },
+                    { t: "PWR", tip: "Power" }
+                ]
+                delegate: Rectangle {
+                    required property var modelData
+                    width: 30; height: 30; radius: 15
+                    color: "#262732"; border.color: root.border; border.width: 1
+                    ToolTip.visible: mh.containsMouse
+                    ToolTip.text: modelData.tip
+                    Text { anchors.centerIn: parent; text: modelData.t; color: root.txt2; font.pointSize: 7 }
+                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+                    MouseArea { id: mh; anchors.fill: parent; hoverEnabled: true
+                        onClicked: console.log("status:", modelData.tip) }
                 }
             }
-            // Pulse color alternation
-            Rectangle {
-                anchors.centerIn: parent
-                width: 8
-                height: 8
-                radius: 4
-                color: leftSidebar.textSecondary
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 8
+            Button { text: "Lock"; font.pointSize: 8; onClicked: console.log("lock requested") }
+            Button { text: "Off"; font.pointSize: 8; onClicked: console.log("power menu requested") }
+        }
+
+        // Breathing pulse status dot
+        Rectangle {
+            Layout.alignment: Qt.AlignHCenter
+            width: 8; height: 8; radius: 4
+            color: root.accent
+            SequentialAnimation on opacity {
+                loops: Animation.Infinite
+                NumberAnimation { from: 1.0; to: 0.3; duration: 1500; easing.type: Easing.InOutSine }
+                NumberAnimation { from: 0.3; to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
             }
         }
     }
 
-    // --- QUICK STATUS INDICATORS CAPSULE ---
+    // Horizontal layout (top / bottom)
     RowLayout {
-        id: statusIndicatorsRow
-        anchors { left: leftTrigger.right; leftMargin: 12; verticalCenter: parent.verticalCenter; right: parent.right; rightMargin: 24 }
-        spacing: 8
-
-        // Capsule-style status pills for Wi-Fi, Bluetooth, Audio Volume, Power Profile
-        // Each is a clickable/interactive pill with spring physics
-
-        StatusPill {
-            text: "Wi-Fi"
-            icon: "wifi"
-            // Connection status visualization
-        }
-
-        StatusPill {
-            text: "Bluetooth"
-            icon: "bluetooth"
-        }
-
-        StatusPill {
-            text: "Audio"
-            icon: "volume-high"
-            // Volume level indicator
-        }
-
-        StatusPill {
-            text: "Power"
-            icon: "power"
-            // Power profile indicator
-        }
-    }
-
-    // --- QUICK SESSION ACTION MENU ---
-    PopupMenu {
-        id: sessionActionMenu
-        anchors { verticalCenter: parent.verticalCenter; left: parent.left; leftMargin: 8 }
-        // Pop-up triggers for Lock, Sleep, Reboot, Shutdown
-        // Triggered via click on session action icon in sidebar
-    }
-
-    // --- DYNAMIC POSITION ENGINE ---
-    // Supports 4 orientations: "top", "bottom", "left", "right"
-    // Auto-morphing layouts between RowLayout and ColumnLayout
-
-    function toggleVisibility() {
-        visible = !visible
-        // Animate position shift based on new visibility state
-    }
-
-    function repositionBar(newPosition) {
-        barPosition = newPosition
-        // Re-layout based on new position
-        // If "top" or "bottom" -> RowLayout
-        // If "left" or "right" -> ColumnLayout
-    }
-}
-
-// --- STATUS PILL COMPONENT ---
-StatusPill {
-    property string text
-    property string icon
-    property real pillRadius: 20
-    property color background: leftSidebar.surfaceContainerBase
-    property color textColor: leftSidebar.textSecondary
-    property bool isActive: false
-
-    // Pill-shaped background with glassmorphism
-    RoundedRectangle {
-        id: pillBg
         anchors.centerIn: parent
-        width: 48
-        height: 32
-        radius: leftSidebar.cornerRadius
-        color: background
-        // subtle shadow/glow
-        Behavior on opacity {
-            NumberAnimation { duration: 200; easing.type: Easing.OutQuad }
+        spacing: 10
+        visible: !root.isVertical
+
+        Text { text: "V"; color: root.accent; font.bold: true; font.pointSize: 16 }
+
+        Repeater {
+            model: 4
+            delegate: Rectangle {
+                required property int index
+                width: root.currentWorkspace === index + 1 ? 34 : 14
+                height: 14
+                radius: 7
+                color: root.currentWorkspace === index + 1 ? root.accent : "#3a3d4d"
+                Behavior on color { ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                MouseArea { anchors.fill: parent; onClicked: root.currentWorkspace = parent.index + 1 }
+            }
         }
-    }
 
-    // Text label
-    Label {
-        anchors { verticalCenter: pillBg.verticalCenter; horizontalCenter: pillBg.horizontalCenter }
-        text: pillar.text
-        color: textColor
-        font.pixelSize: 11
-        font.weight: Font.Medium
-    }
-
-    // Icon source
-    Label {
-        anchors { verticalCenter: pillBg.verticalCenter; horizontalCenter: pillBg.horizontalCenter }
-        // Would use appropriate icon font or SVG
-        text: "●"  // Placeholder
-        color: textColor
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            // Toggle respective feature
-            console.log("Status pill clicked: " + pillar.text)
+        Rectangle { width: 1; height: 36; color: root.border }
+        Button { text: "Apps"; font.pointSize: 8; onClicked: console.log("launcher requested") }
+        Button { text: "Lock"; font.pointSize: 8; onClicked: console.log("lock requested") }
+        Rectangle {
+            width: 8; height: 8; radius: 4; color: root.accent
+            SequentialAnimation on opacity {
+                loops: Animation.Infinite
+                NumberAnimation { from: 1.0; to: 0.3; duration: 1500; easing.type: Easing.InOutSine }
+                NumberAnimation { from: 0.3; to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
+            }
         }
     }
 }

@@ -1,12 +1,8 @@
-module VaelesticalModules
-
-    LeftSidebar ./LeftSidebar.qml
-    CentralDashboard ./CentralDashboard.qml
-    WallpaperPicker ./WallpaperPicker.qml
-    ControlCenter ./ControlCenter.qml
-    LoginDashboard ./LoginDashboard.qml
-    SettingsHub ./SettingsHub.qml
-    UtilitiesAI ./UtilitiesAI.qml
-    GamingAdvanced ./GamingAdvanced.qml
-
-endmodule
+LeftSidebar LeftSidebar.qml
+CentralDashboard CentralDashboard.qml
+WallpaperPicker WallpaperPicker.qml
+ControlCenter ControlCenter.qml
+LoginDashboard LoginDashboard.qml
+SettingsHub SettingsHub.qml
+UtilitiesAI UtilitiesAI.qml
+GamingAudioAdvanced GamingAudioAdvanced.qml

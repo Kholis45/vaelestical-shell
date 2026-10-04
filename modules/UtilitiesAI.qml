@@ -1,169 +1,193 @@
-import QtQuick 6.0
-import QtQuick.Controls 6.0
-import QtQuick.Layouts 6.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-// ============================================================
-// MODULE E: UTILITIES, AI & SYSTEM EXTENSIONS
-//================================================================
-// Searchable Clipboard History Flyout
-// Minimalist Search & App Launcher
-// Floating Notification Toast Banner
-// Transient On-Screen Display (OSD) Pills
-// Local LLM / Ollama Quick Prompt Flyout
-// Smart Contextual Keybindings / Hotkeys Handler
-// Terminal Pywal / Matugen Color Harmonization
-// Media Playback History Log
-// Hyprland Window Layout Switcher
-// Screenshots & Screen Recording Tool
-// Quick Notes & Scratchpad Sticky Widget
-// System Resource Monitor Detailed History Graph
-// Dynamic Weather Background Animations
-// Custom Avatar & Profile Banner Header
-// Real-time Glassmorphic Blur & Noise Slider
-// Native DBus System Tray (StatusNotifierItem)
-// Safety Power Confirmation Modal
-//================================================================
+// MODULE E: Utilities, AI & system extensions (demo interaktif).
+Item {
+    id: root
+    property color card: "#1a1b22"
+    property color card2: "#262732"
+    property color border: "#333545"
+    property color txt1: "#e3e2e6"
+    property color txt2: "#8e9099"
 
-// Utilities & AI Root
-UtilsAIRoot {
-    id: utilsAiroot
-}
+    width: 680
+    height: 620
 
-// --- 31. SEARCHABLE CLIPBOARD HISTORY FLYOUT ---
-ClipboardHistoryFlyout {
-    id: clipboardHistory
-    // Stack view clipboard manager (wl-clipboard / cliphist)
-    // Searchable, with item preview
-    // Spring-slide-in physics
-}
+    Rectangle {
+        anchors.fill: parent
+        radius: 20
+        color: root.card
+        opacity: 0.94
+        border.color: root.border
+        border.width: 1
+        layer.enabled: true
+        layer.smooth: true
+    }
 
-// --- 32. MINIMALIST SEARCH & APP LAUNCHER ---
-SearchAppLauncher {
-    id: searchLauncher
-    // Floating search bar for applications, terminal commands, math calculations
-    // As-you-type filtering
-    // Enter to execute, Super+K shortcut
-}
+    ScrollView {
+        anchors.fill: parent
+        anchors.margins: 14
+        clip: true
+        GridLayout {
+            width: root.width - 28
+            columns: 2
+            columnSpacing: 10
+            rowSpacing: 10
 
-// --- 33. FLOATING NOTIFICATION TOAST BANNER ---
-ToastBanner {
-    id: toastBanner
-    // Top-right notification cards driven by DBus events
-    // Spring slide-in physics (x: from width to 0 over 300ms)
-    // Auto-dismiss after 5 seconds
-}
+            // Clipboard
+            Rectangle {
+                Layout.fillWidth: true; Layout.preferredHeight: 190
+                radius: 14; color: root.card2; border.color: root.border; border.width: 1
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 10; spacing: 6
+                    Text { text: "Clipboard history"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+                    TextField { id: clipSearch; Layout.fillWidth: true; placeholderText: "Cari clipboard…" }
+                    ListView {
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        clip: true
+                        model: ["sudo pacman -Syu", "ssh kholis@server", "catatan: beli kopi", "https://contoh.id", "echo hello"]
+                        delegate: Text {
+                            required property var modelData
+                            width: ListView.view.width
+                            text: "• " + modelData; color: root.txt2; font.pointSize: 10; elide: Text.ElideRight
+                            visible: clipSearch.text === "" || modelData.toLowerCase().indexOf(clipSearch.text.toLowerCase()) !== -1
+                        }
+                    }
+                }
+            }
 
-// --- 34. TRANSIENT OSD PILLS ---
-OSDPills {
-    id: osdPills
-    // Center-screen pills for Volume, Brightness, Caps Lock, Num Lock, Input Layouts
-    // Transient - fade out after action
-    // Spring-based appearance/dismissal
-}
+            // Launcher + kalkulator mini
+            Rectangle {
+                Layout.fillWidth: true; Layout.preferredHeight: 190
+                radius: 14; color: root.card2; border.color: root.border; border.width: 1
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 10; spacing: 6
+                    Text { text: "Launcher + hitung"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+                    TextField { id: launchField; Layout.fillWidth: true; placeholderText: "firefox / 12*8-4…" }
+                    Text { id: launchOut; text: "Super+K • Enter eksekusi (demo)"; color: root.txt2; font.pointSize: 10; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                    Button { text: "Jalankan"; Layout.fillWidth: true; onClicked: {
+                        var m = launchField.text.match(/^\s*(-?\d+(?:\.\d+)?)\s*([+\-*/])\s*(-?\d+(?:\.\d+)?)\s*$/)
+                        if (m) {
+                            var r = m[2] === "+" ? (+m[1] + +m[3]) : m[2] === "-" ? (+m[1] - +m[3])
+                                : m[2] === "*" ? (+m[1] * +m[3]) : (+m[3] !== 0 ? (+m[1] / +m[3]) : NaN)
+                            launchOut.text = "= " + r
+                        } else if (launchField.text === "") launchOut.text = "Ketik perintah / ekspresi dulu."
+                        else launchOut.text = "Demo: '" + launchField.text + "' akan dibuka."
+                    } }
+                }
+            }
 
-// --- 35. LOCAL LLM / OLLAMA QUICK PROMPT FLYOUT ---
-LLMPromptFlyout {
-    id: llmPrompt
-    // Floating prompt input bar for local AI models (Ollama/LM Studio)
-    // Send prompt, show response preview
-    // Model selection dropdown
-}
+            // Notifikasi toast + OSD
+            Rectangle {
+                Layout.fillWidth: true; Layout.preferredHeight: 190
+                radius: 14; color: root.card2; border.color: root.border; border.width: 1
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 10; spacing: 6
+                    Text { text: "Toast & OSD pills"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+                    Button { text: "Tampilkan toast"; Layout.fillWidth: true; onClicked: { toastDemo.visible = true; toastHide.start() } }
+                    Text { id: toastDemo; text: "🔔 Notifikasi DBus (demo)"; color: root.txt1; font.pointSize: 10; visible: false }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "OSD vol:"; color: root.txt2; font.pointSize: 10 }
+                        Slider { id: osdVol; Layout.fillWidth: true; from: 0; to: 100; value: 40 }
+                        Text { text: Math.round(osdVol.value) + "%"; color: root.txt1; font.pointSize: 10 }
+                    }
+                    Text { text: "CapsLock: OFF • Layout: ID"; color: root.txt2; font.pointSize: 10 }
+                }
+            }
 
-// --- 36. SMART CONTEXTUAL KEYBINDINGS / HOTKEYS HANDLER ---
-HotkeyHandler {
-    id: hotkeyHandler
-    // Global hotkey shortcuts
-    // Super+D for Dashboard
-    // Super+W for Wallpaper Switcher
-    // Super+T for Terminal
-    // Super+L for Lock
-    // Customizable keymap
-}
+            // LLM lokal + hotkeys
+            Rectangle {
+                Layout.fillWidth: true; Layout.preferredHeight: 190
+                radius: 14; color: root.card2; border.color: root.border; border.width: 1
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 10; spacing: 6
+                    Text { text: "Ollama prompt + hotkeys"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        ComboBox { model: ["llama3", "qwen2", "mistral"] }
+                        TextField { id: llmField; Layout.fillWidth: true; placeholderText: "Tanya model lokal…" }
+                    }
+                    Text { id: llmOut; text: "Respons muncul di sini (demo)."; color: root.txt2; font.pointSize: 10; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                    Button { text: "Kirim"; Layout.fillWidth: true; onClicked:
+                        llmOut.text = llmField.text === "" ? "Prompt kosong." : "Demo: '" + llmField.text + "' → OK (42 token)." }
+                }
+            }
 
-// --- 37. TERMINAL PYWAL / MATUGEN COLOR HARMONIZATION ---
-TerminalColorSync {
-    id: terminalSync
-    // Script execution engine syncing active terminal themes
-    // Supports Kitty, Alacritty, Foot
-    // Executes pywal/Matugen on wallpaper change
-}
+            // Catatan + screenshot/layout
+            Rectangle {
+                Layout.fillWidth: true; Layout.preferredHeight: 190
+                radius: 14; color: root.card2; border.color: root.border; border.width: 1
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 10; spacing: 6
+                    Text { text: "Scratchpad & capture"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+                    TextArea { Layout.fillWidth: true; Layout.preferredHeight: 60; placeholderText: "Catatan cepat (auto-save demo)…" }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        ComboBox { model: ["Dwindle", "Master", "Floating"] }
+                        Button { text: "Screenshot"; onClicked: console.log("grim/slurp (demo)") }
+                    }
+                }
+            }
 
-// --- 38. MEDIA PLAYBACK HISTORY LOG ---
-MediaHistoryLog {
-    id: mediaHistory
-    // Scrollable log of recently played tracks
-    // Metadata: artist, album, title
-    // Click to replay or add to playlist
-}
+            // Grafik resource (Canvas) + tray + daya
+            Rectangle {
+                Layout.fillWidth: true; Layout.preferredHeight: 190
+                radius: 14; color: root.card2; border.color: root.border; border.width: 1
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 10; spacing: 6
+                    Text { text: "Grafik CPU/GPU + tray + daya"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+                    Canvas {
+                        id: graph
+                        Layout.fillWidth: true; Layout.preferredHeight: 70
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            ctx.strokeStyle = "#333545"; ctx.lineWidth = 1
+                            ctx.strokeRect(0.5, 0.5, width - 1, height - 1)
+                            ctx.strokeStyle = "#a8c7fa"; ctx.lineWidth = 2
+                            ctx.beginPath()
+                            for (var i = 0; i < width; i += 6) {
+                                var y = height / 2 + Math.sin((i + graphTick.n) * 0.15) * height * 0.3
+                                if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y)
+                            }
+                            ctx.stroke()
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Tray: Discord Steam OBS"; color: root.txt2; font.pointSize: 10; Layout.fillWidth: true }
+                        Button { text: "Daya…"; onClicked: powerDlg.open() }
+                    }
+                }
+            }
+        }
+    }
 
-// --- 39. HYprland WINDOW LAYOUT SWITCHER ---
-WindowLayoutSwitcher {
-    id: layoutSwitcher
-    // On-the-fly switching between Dwindle, Master, Floating layouts
-    // Hotkey trigger (Super+Shift+F1/F2 etc.)
-    // Preview of current layout
-}
+    Timer { id: toastHide; interval: 3000; repeat: false; onTriggered: toastDemo.visible = false }
+    Timer { id: graphTick; property int n: 0; interval: 400; running: true; repeat: true;
+        onTriggered: { n += 4; graph.requestPaint() } }
 
-// --- 40. SCREENSHOTS & SCREEN RECORDING TOOL ---
-ScreenshotRecorder {
-    id: screenshotTool
-    // Floating trigger for area/fullscreen captures
-    // wl-screenrec / OBS recording integration
-    // Thumbnail preview, save to clipboard
-}
-
-// --- 41. QUICK NOTES & SCRATCHPAD STICKY WIDGET ---
-ScratchpadWidget {
-    id: scratchpad
-    // Floating auto-saving scratchpad for quick command/text notes
-    // Persistent across sessions (localStorage or file)
-    // Drag to reposition, close button
-}
-
-// --- 42. SYSTEM RESOURCE MONITOR HISTORY GRAPH ---
-ResourceHistoryGraph {
-    id: resourceGraph
-    // Historical resource utilization graph showing CPU/GPU/RAM spikes
-    // Scrollable history, zoomable
-    // Can toggle between CPU, GPU, RAM views
-}
-
-// --- 43. DYNAMIC WEATHER BACKGROUND ANIMATIONS ---
-WeatherParticles {
-    id: weatherParticles
-    // Subtle ambient weather particle overlays (rain, snow, clouds)
-    // Inside the Dashboard, optional toggle
-    // Controlled by weather data integration
-}
-
-// --- 44. CUSTOM AVATAR & PROFILE BANNER HEADER ---
-ProfileBanner {
-    id: profileBanner
-    // Customizable profile identity banner ("PRIVATE EASTJAVA" / @kholis)
-//    // Color schemes, avatar, tagline
-//    // Display in Dashboard header, Settings About section
-}
-
-// --- 45. REAL-TIME GLASSMORPHIC BLUR & NOISE SLIDER ---
-BlurNoiseSlider {
-    id: blurNoiseCtrl
-    // Live adjustment sliders for background blur intensity and frosted glass noise
-//    // Blur: 0-20px, Noise: 0-100%    // Updates all glassmorphic backgrounds in real-time
-}
-
-// --- 46. NATIVE DBUS SYSTEM TRAY (STATUSNOTIFIERITEM) ---
-SystemTray {
-    id: systemTray
-    // Collapsible tray container for background applications
-    // Discord, Steam, OBS, Telegram, NetworkManager
-    // Right-click menu with show/hide options
-}
-
-// --- 47. SAFETY POWER CONFIRMATION MODAL ---
-PowerConfirmationModal {
-    id: powerModal
-    // Floating overlay with 10-second auto-countdown timer
-    // Before Shutdown/Reboot execution
-    // Cancel button resets timer, Confirm executes action
-    // Visual countdown display
+    Dialog {
+        id: powerDlg
+        title: "Konfirmasi daya (10 dtk)"
+        modal: true
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        ColumnLayout {
+            Text { text: "Shutdown dalam:"; color: root.txt1 }
+            Text { id: cdText; text: "10"; color: root.txt1; font.pointSize: 24; font.bold: true }
+        }
+        onOpened: { cdText.text = "10"; cdTimer.start() }
+        onClosed: cdTimer.stop()
+        onAccepted: console.log("shutdown confirmed (demo)")
+    }
+    Timer {
+        id: cdTimer; interval: 1000; repeat: true
+        onTriggered: {
+            var v = parseInt(cdText.text) - 1
+            cdText.text = v < 0 ? "0" : String(v)
+            if (v <= 0) { stop(); powerDlg.close() }
+        }
+    }
 }

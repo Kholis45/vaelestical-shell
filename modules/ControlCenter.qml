@@ -1,117 +1,102 @@
-import QtQuick 6.0
-import QtQuick.Controls 6.0
-import QtQuick.Layouts 6.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-// ============================================================
-// MODULE D: HARDWARE CONTROL CENTER & AUDIO ROUTING
-//================================================================
-// Network Switcher, Bluetooth Manager, DND Toggle
-// Feral GameMode Switch, Flight Mode & Night Light
-// PipeWire Audio Route Switcher, Master Volume & Backlight Sliders
-// Per-App Volume Mixer, Audio Sink Hot-Swapping Widget
-// Integrated Game Launcher & Power Grid
-// VPN & OBS Recording Status Indicators
-//================================================================
+// MODULE D: Hardware control center & audio routing (demo interaktif).
+Item {
+    id: root
+    property color accent: "#a8c7fa"
+    property color card: "#1a1b22"
+    property color border: "#333545"
+    property color txt1: "#e3e2e6"
+    property color txt2: "#8e9099"
 
-// Control Center Root
-ControlCenterRoot {
-    id: controlCenterRoot
-}
+    width: 560
+    height: 640
 
-// --- NETWORK SWITCHER ---
-// Toggle and select Wi-Fi access points (nmcli)
-NetworkSwitcher {
-    id: networkSwitcher
-    // Wi-Fi access point list scanning
-    // Connect/disconnect functionality
-    // Visual SSID indicators
-}
+    Rectangle {
+        anchors.fill: parent
+        radius: 20
+        color: root.card
+        opacity: 0.94
+        border.color: root.border
+        border.width: 1
+        layer.enabled: true
+        layer.smooth: true
+    }
 
-// --- BLUETOOTH MANAGER ---
-// Controller power and device connection panel (bluetoothctl)
-BluetoothManager {
-    id: bluetoothManager
-    // Device discovery
-    // Pairing/unpairing
-    // Connection status display
-}
+    ScrollView {
+        anchors.fill: parent
+        anchors.margins: 14
+        clip: true
+        ColumnLayout {
+            width: root.width - 28
+            spacing: 10
 
-// --- DO NOT DISTURB TOGGLE ---
-// System-wide pop-up notification muting
-DNDToggle {
-    id: dndToggle
-    // Global DND mode
-    // Exceptions management
-    // Visual indicator
-}
+            Text { text: "Control Center"; color: root.txt1; font.bold: true; font.pointSize: 13 }
 
-// --- FERAL GAMEMODE SWITCH ---
-// High-performance CPU/GPU allocation trigger (gamemoded -t)
-GameModeSwitch {
-    id: gameModeSwitch
-    // Quick toggles: Quiet, Balanced, Extreme
-    // GPU profile switching
-    // Performance mode activation
-}
+            GridLayout {
+                columns: 2
+                columnSpacing: 8; rowSpacing: 8
+                Layout.fillWidth: true
+                Switch { text: "Wi-Fi — Casa-5G"; checked: true }
+                Switch { text: "Bluetooth — 2 perangkat"; checked: true }
+                Switch { text: "Do Not Disturb"; checked: false }
+                Switch { text: "GameMode (gamemoded)"; checked: false }
+                Switch { text: "Flight mode"; checked: false }
+                Switch { text: "Night light"; checked: true }
+            }
 
-// --- FLIGHT MODE & NIGHT LIGHT SWITCHES ---
-// Airplane mode and display blue-light filter toggles
-FlightModeNightLight {
-    id: flightModeNightLight
-    // Airplane mode toggle
-    // Night light / blue-light filter
-    // Color temperature adjustment
-}
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "Output:"; color: root.txt2; font.pointSize: 11 }
+                ComboBox {
+                    Layout.fillWidth: true
+                    model: ["Laptop Speakers", "Headphones / DAC", "Dante Network Audio"]
+                }
+            }
+            Button { text: "Swap sink utama"; Layout.fillWidth: true;
+                onClicked: console.log("audio sink hot-swap") }
 
-// --- PIPEWIRE AUDIO ROUTE SWITCHER ---
-// Dropdown for instant hot-swapping (Laptop Speakers, Headphones/DAC, Dante Network Audio)
-AudioRouteSwitcher {
-    id: audioRouteSwitcher
-    // Available sinks/outputs list
-    // One-click primary audio sink toggle
-    // Hot-swapping functionality
-}
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "Vol"; color: root.txt2; font.pointSize: 11 }
+                Slider { Layout.fillWidth: true; from: 0; to: 100; value: 78 }
+                Text { text: "78%"; color: root.txt1; font.pointSize: 11 }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "Layar"; color: root.txt2; font.pointSize: 11 }
+                Slider { Layout.fillWidth: true; from: 0; to: 100; value: 65 }
+                Text { text: "65%"; color: root.txt1; font.pointSize: 11 }
+            }
 
-// --- MASTER VOLUME & BACKLIGHT SLIDERS ---
-// Precision control over wpctl and brightnessctl
-VolumeBacklightSliders {
-    id: volumeBacklightSliders
-    // Master volume slider (wpctl)
-    // Display backlight slider (brightnessctl)
-    // Value displays
-}
+            Text { text: "Mixer per aplikasi"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+            Repeater {
+                model: ["Firefox", "Spotify", "OBS"]
+                delegate: RowLayout {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    Text { text: modelData; color: root.txt2; font.pointSize: 11; Layout.preferredWidth: 70 }
+                    Slider { Layout.fillWidth: true; from: 0; to: 100; value: 60 }
+                }
+            }
 
-// --- PER-APP VOLUME MIXER ---
-// Individual volume control sliders for active running applications
-PerAppVolumeMixer {
-    id: perAppVolumeMixer
-    // Lists running applications
-    // Individual volume sliders per app
-    // Priority/ mute per app
-}
-
-// --- AUDIO SINK HOT-SWAPPING WIDGET ---
-// One-click primary audio sink toggle
-AudioSinkToggle {
-    id: audioSinkToggle
-    // Primary sink selection
-    // Quick switch UI
-}
-
-// --- INTEGRATED GAME LAUNCHER & POWER GRID ---
-// Shortcuts for Steam, Prism Launcher, Heroic, Discord, and Power actions
-GameLauncherPowerGrid {
-    id: gameLauncherGrid
-    // Game launcher icons: Steam, Prism, Heroic
-    // Power actions: Sleep, Restart, Shutdown
-    // VPN/OBS status indicators
-}
-
-// --- VPN & OBS RECORDING STATUS INDICATORS ---
-// Active VPN tunnel readout and glowing recording dot indicator
-VPNObsIndicators {
-    id: vpnObsIndicators
-    // VPN tunnel status display
-    // Recording dot indicator with glow effect
-    // Connection speed meter
+            Text { text: "Launcher game & daya"; color: root.txt1; font.bold: true; font.pointSize: 11 }
+            RowLayout {
+                Layout.fillWidth: true
+                Button { text: "Steam"; onClicked: console.log("launch steam") }
+                Button { text: "Prism"; onClicked: console.log("launch prism") }
+                Button { text: "Heroic"; onClicked: console.log("launch heroic") }
+                Button { text: "Discord"; onClicked: console.log("launch discord") }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "VPN: aktif (10.8.0.2)"; color: "#34d399"; font.pointSize: 11 }
+                Item { Layout.fillWidth: true }
+                Rectangle { width: 10; height: 10; radius: 5; color: "red" }
+                Text { text: "REC"; color: root.txt2; font.pointSize: 11 }
+            }
+        }
+    }
 }

@@ -1,121 +1,86 @@
-import QtQuick 6.0
-import QtQuick.Controls 6.0
-import QtQuick.Layouts 6.0
-import Qt.labs.platform 6.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-// ============================================================
-// MODULE C: DYNAMIC MATERIAL YOU & WALLPAPER ENGINE
-//================================================================
-// Bottom Carousel Wallpaper Switcher
-// Dynamic Material You Accent Extraction Engine
-// Instant Light/Dark Mode Switcher
-// Animated Video Wallpaper Engine (mpvpaper / swww integration)
-// Dynamic Material You Cursor & Icon Sync via Pywal/Matugen
-//================================================================
+// MODULE C: Wallpaper picker + Material You engine (demo interaktif).
+Item {
+    id: root
+    property color accent: "#a8c7fa"
+    property bool darkMode: true
+    property int currentIndex: 0
+    property var swatches: ["#a8c7fa", "#7f7fff", "#7f00ff", "#2dd4bf", "#fbbf24", "#f078d2"]
 
-// Wallpaper Picker Root
-WallpaperEngine {
-    id: wallpaperEngine
-}
+    width: 620
+    height: 300
 
-// --- BOTTOM CAROUSEL WALLPAPER SWITCHER ---
-// Floating horizontal thumbnail selector for wallpaper selection
-BottomCarouselWallpaper {
-    id: bottomCarousel
-    anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter; bottomMargin: 24 }
-    height: 80
-    // Thumbnail items with spring-based scrolling
-    // Clicking sets wallpaper and triggers accent color extraction
-}
+    function loadDefaultWallpaper() { root.currentIndex = 0; root.accent = root.swatches[0] }
+    function setWallpaper(i) { root.currentIndex = i; root.accent = root.swatches[i % root.swatches.length] }
+    function extractAccentColor(i) { root.setWallpaper(i) }
 
-// Carousel item delegate
-CarouselItemDelegate {
-    id: carouselItem
-    width: bottomCarousel.itemWidth
-    height: bottomCarousel.itemHeight
-    
-    // Wallpaper thumbnail display
-    Image {
+    Rectangle {
         anchors.fill: parent
-        source: model.data.wallpaperPath
-        // Asynchronous loading to prevent UI blocking
-        asynchronous: true
-        // Fill mode for proper thumbnail display
-        fillMode: Image.PreserveAspectFit
+        radius: 20
+        color: "#1a1b22"
+        opacity: 0.94
+        border.color: "#333545"
+        border.width: 1
+        layer.enabled: true
+        layer.smooth: true
     }
-    
-    // Selected state with scale feedback
-    states: [
-        State {
-            name: "selected"
-            PropertyChanges { target: carouselItem; scale: 1.15 }
-        }
-    ]
-    Transitions {
-        Transition {
-            from: ""
-            to: "selected"
-            NumberAnimation {
-                target: carouselItem
-                property: "scale"
-                duration: 200
-                easing.type: Easing.OutCubic
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 14
+        spacing: 8
+
+        RowLayout {
+            Layout.fillWidth: true
+            Text { text: "Wallpaper & Material You"; color: "#e3e2e6"; font.bold: true; font.pointSize: 12 }
+            Item { Layout.fillWidth: true }
+            Text { text: "Aksen:"; color: "#8e9099"; font.pointSize: 10 }
+            Rectangle { width: 22; height: 22; radius: 11; color: root.accent;
+                border.color: "#ffffff"; border.width: 1 }
+            Switch {
+                text: "Gelap"
+                checked: root.darkMode
+                onToggled: root.darkMode = checked
             }
         }
-    }
-    
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            // Set selected wallpaper
-            wallpaperEngine.setWallpaper(model.data.wallpaperPath)
-            // Trigger accent color extraction
-            wallpaperEngine.extractAccentColor(model.data.wallpaperPath)
+
+        ListView {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 110
+            orientation: ListView.Horizontal
+            spacing: 10
+            clip: true
+            model: root.swatches
+            delegate: Rectangle {
+                required property var modelData
+                required property int index
+                width: 150; height: 110; radius: 14
+                color: modelData
+                opacity: root.currentIndex === index ? 1.0 : 0.55
+                border.color: root.currentIndex === index ? "#ffffff" : "#333545"
+                border.width: root.currentIndex === index ? 3 : 1
+                scale: root.currentIndex === index ? 1.04 : 1.0
+                Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
+                Text { anchors.centerIn: parent; text: "W" + (index + 1); color: "#0d0e12"; font.bold: true }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: root.setWallpaper(index)
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            Switch { id: videoSw; text: "Video wallpaper (mpvpaper/swww)" }
+            Text { text: videoSw.checked ? "Aktif — auto-pause saat fullscreen" : "Nonaktif";
+                color: "#8e9099"; font.pointSize: 10; Layout.fillWidth: true }
+            Button { text: "Sync cursor+ikon"; font.pointSize: 9
+                onClicked: console.log("matugen/pywal sync, aksen:", root.accent) }
         }
     }
-}
-
-// --- DYNAMIC MATERIAL YOU ACCENT EXTRACTION ENGINE ---
-// Real-time sampling of wallpaper dominant colors
-// to dynamically shift UI accent colors
-AccentExtractionEngine {
-    id: accentEngine
-    
-    // On wallpaper change, extract dominant color
-    // Update UI color tokens: accentPrimary, surfaceAccent, etc.
-    // Smooth transition over 300ms for palette shift
-    
-    function extractFromPath(path) {
-        // Analyze wallpaper, extract dominant color
-        // Shift Material You accent colors
-        // Update main.qml color properties with spring animation
-    }
-}
-
-// --- INSTANT LIGHT/DARK MODE SWITCHER ---
-// Smooth color palette transition engine
-LightDarkSwitcher {
-    id: lightDarkSwitcher
-    // Toggles between light and dark Material You color schemes
-    // Animates all color properties over 300-500ms
-    // Preserves accent color across mode shift
-}
-
-// --- ANIMATED VIDEO WALLPAPER ENGINE ---
-// Native integration with mpvpaper / swww supporting video/GIF backdrops
-// Auto-pause during fullscreen tasks
-VideoWallpaperEngine {
-    id: videoWallpaper
-    // Supports mp4, webm, gif formats
-    // Auto-pause when fullscreen windows are active
-    // swww API integration for smooth transitions
-}
-
-// --- DYNAMICAL MATERIAL YOU CURSOR & ICON SYNC ---
-// Automatic cursor and icon pack color synchronization
-CursorIconSync {
-    id: cursorSync
-    // Runs pywal/matugen backend integration
-    // Syncs cursor theme, icon colors with current wallpaper accent
-    // Periodic refresh (every 30s or on wallpaper change)
 }
