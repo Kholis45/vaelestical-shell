@@ -1,0 +1,44 @@
+name: shell-ci
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QT_QUICK_BACKEND: software
+      QT_QUICK_CONTROLS_STYLE: Basic
+      QML_XHR_ALLOW_FILE_READ: "1"
+      SOAK_SECONDS: "20"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: System deps (GL + fonts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-dejavu libgl1 libegl1 libxkbcommon0 libdbus-1-3
+
+      - name: Python deps
+        run: pip install PySide6
+
+      - name: Parser + bridge unit tests (tanpa GUI)
+        run: |
+          python tests/test_parsers.py
+          python tests/test_bridge.py
+
+      - name: QML smoke (load + exercise, 0 warning)
+        run: python tests/smoke_qml.py
+
+      - name: QML interaction (klik & ketik beneran)
+        run: python tests/interact_qml.py
+
+      - name: QML IPC (file antrian -> UI)
+        run: python tests/ipc_qml.py
+
+      - name: QML soak (20 dtk interaksi acak)
+        run: python tests/soak_qml.py

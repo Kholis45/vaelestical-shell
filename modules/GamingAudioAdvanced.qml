@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// MODULE F: Pro gaming, audio & system advanced solid (demo interaktif).
+// MODULE F: Pro gaming, audio & system advanced (M3E penuh, demo).
 Item {
     id: root
     width: 680
@@ -23,7 +23,7 @@ Item {
         anchors.rightMargin: 2
         radius: Theme.cardRadius
         color: Theme.surface
-        border.color: Theme.outline
+        border.color: Theme.outlineVariant
         border.width: 1
     }
 
@@ -41,25 +41,25 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 170
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "FPS HUD (MangoHud)"; color: Theme.onSurface; font.bold: true; font.pointSize: 11; Layout.fillWidth: true }
+                        Text { text: "FPS HUD (MangoHud)"; color: Theme.onSurface; font: Theme.titleSmall; Layout.fillWidth: true }
                         Switch { id: hudSw; checked: true }
                     }
                     Rectangle {
                         Layout.fillWidth: true
-                        height: 34
+                        height: 36
                         radius: Theme.pillRadius
-                        color: Theme.primaryContainer
-                        border.color: Theme.primary
+                        color: Theme.tertiaryContainer
+                        border.color: Theme.tertiary
                         border.width: 1
                         visible: hudSw.checked
-                        Text { id: hudText; anchors.centerIn: parent; text: "144 FPS • CPU 42% • GPU 55%"; color: Theme.onSurface; font.pointSize: 11 }
+                        Text { id: hudText; anchors.centerIn: parent; text: "144 FPS • CPU 42% • GPU 55%"; color: Theme.onTertiaryContainer; font: Theme.labelLarge }
                     }
-                    ComboBox { Layout.fillWidth: true; model: ["Quiet", "Balanced", "Extreme"] }
+                    ComboBox { Layout.fillWidth: true; font: Theme.labelMedium; model: ["Quiet", "Balanced", "Extreme"] }
                 }
             }
 
@@ -67,20 +67,20 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 170
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "Shader cache & motion"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
+                    Text { text: "Shader cache & motion"; color: Theme.onSurface; font: Theme.titleSmall }
                     RowLayout {
                         Layout.fillWidth: true
-                        Button { text: "Mesa"; onClicked: root.purge("Mesa") }
-                        Button { text: "Steam"; onClicked: root.purge("Steam") }
-                        Button { text: "VKD3D"; onClicked: root.purge("VKD3D") }
+                        Button { text: "Mesa"; font: Theme.labelMedium; onClicked: root.purge("Mesa") }
+                        Button { text: "Steam"; font: Theme.labelMedium; onClicked: root.purge("Steam") }
+                        Button { text: "VKD3D"; font: Theme.labelMedium; onClicked: root.purge("VKD3D") }
                     }
                     ProgressBar { id: purgeBar; Layout.fillWidth: true; from: 0; to: 100; value: 0 }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Anim:"; color: Theme.onSurfaceVariant; font.pointSize: 10 }
+                        Text { text: "Anim:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                         Slider { Layout.fillWidth: true; from: 50; to: 300; value: 150 }
                     }
                 }
@@ -90,21 +90,21 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "PipeWire EQ / DSP + Dante"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
-                    ComboBox { Layout.fillWidth: true;
+                    Text { text: "PipeWire EQ / DSP + Dante"; color: Theme.onSurface; font: Theme.titleSmall }
+                    ComboBox { Layout.fillWidth: true; font: Theme.labelMedium;
                         model: ["Flat", "Sub-Bass Boost", "Live Sound Horeg"] }
                     Slider { Layout.fillWidth: true; from: -12; to: 12; value: 0 }
                     Rectangle {
                         Layout.fillWidth: true
-                        height: 26
+                        height: 28
                         radius: Theme.pillRadius
                         color: Theme.surfaceContainerHighest
-                        border.color: Theme.outline
+                        border.color: Theme.outlineVariant
                         border.width: 1
-                        Text { id: danteText; anchors.centerIn: parent; text: "Dante: 2.1 ms • loss 0.0%"; color: Theme.onSurfaceVariant; font.pointSize: 10 }
+                        Text { id: danteText; anchors.centerIn: parent; text: "Dante: 2.1 ms • loss 0.0%"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                     }
                 }
             }
@@ -113,29 +113,29 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "AUR • VM • Jaringan"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
+                    Text { text: "AUR • VM • Jaringan"; color: Theme.onSurface; font: Theme.titleSmall }
                     RowLayout {
                         Layout.fillWidth: true
                         Rectangle {
                             Layout.fillWidth: true
-                            height: 28
+                            height: 30
                             radius: Theme.pillRadius
                             color: Theme.warning
-                            Text { anchors.centerIn: parent; text: "12 update"; color: "#131318"; font.bold: true; font.pointSize: 11 }
+                            Text { anchors.centerIn: parent; text: "12 update"; color: Theme.scrim; font: Theme.labelLarge }
                         }
-                        Button { text: "Upgrade"; font.pointSize: 9; onClicked: console.log("yay -Syu (demo)") }
+                        Button { text: "Upgrade"; font: Theme.labelMedium; onClicked: console.log("yay -Syu (demo)") }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "arch-vm:"; color: Theme.onSurfaceVariant; font.pointSize: 10 }
+                        Text { text: "arch-vm:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                         Switch { checked: false; onToggled: console.log("vm toggle:", checked) }
-                        Text { text: "pihole:"; color: Theme.onSurfaceVariant; font.pointSize: 10 }
+                        Text { text: "pihole:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                         Switch { checked: true; onToggled: console.log("container toggle:", checked) }
                     }
-                    Text { id: netText; text: "↓ 1.2 MB/s • ↑ 340 KB/s • ping 18 ms"; color: Theme.onSurfaceVariant; font.pointSize: 10 }
+                    Text { id: netText; text: "↓ 1.2 MB/s • ↑ 340 KB/s • ping 18 ms"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                 }
             }
         }

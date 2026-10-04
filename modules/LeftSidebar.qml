@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// MODULE A: Floating pill sidebar solid + workspace switcher (M3).
+// MODULE A: Floating pill sidebar solid + workspace switcher (M3E).
 Item {
     id: root
     property string barPosition: "left" // top | bottom | left | right
@@ -11,12 +11,12 @@ Item {
     property bool isVertical: barPosition === "left" || barPosition === "right"
 
     width: isVertical ? 76 : 560
-    height: isVertical ? 620 : 76
+    height: isVertical ? 470 : 76
 
     function toggleVisibility() { root.visible = !root.visible }
     function repositionBar(pos) { root.barPosition = pos }
 
-    // Soft drop shadow (solid, tanpa blur) + body solid
+    // Solid shadow + body solid
     Rectangle {
         anchors.fill: parent
         anchors.topMargin: 3
@@ -31,7 +31,7 @@ Item {
         anchors.rightMargin: 2
         radius: isVertical ? width / 2 : height / 2
         color: Theme.surfaceContainer
-        border.color: Theme.outline
+        border.color: Theme.outlineVariant
         border.width: 1
     }
 
@@ -41,7 +41,7 @@ Item {
         spacing: 10
         visible: root.isVertical
 
-        Text { text: "V"; color: Theme.accent; font.bold: true; font.pointSize: 16;
+        Text { text: "V"; color: Theme.accent; font: Theme.titleMedium;
             Layout.alignment: Qt.AlignHCenter }
 
         Repeater {
@@ -49,23 +49,34 @@ Item {
             delegate: Rectangle {
                 required property int index
                 property bool active: root.currentWorkspace === index + 1
+                objectName: "wsDot" + index
                 Layout.alignment: Qt.AlignHCenter
                 width: active ? 34 : 14
                 height: 14
-                radius: 99
-                color: active ? Theme.active : Theme.surfaceContainerHighest
-                border.color: active ? Theme.active : Theme.outline
+                radius: Theme.pillRadius
+                color: active ? Theme.primary : Theme.surfaceContainerHighest
+                border.color: active ? Theme.primary : Theme.outlineVariant
                 border.width: 1
-                Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: root.currentWorkspace = parent.index + 1
+                Behavior on color {
+                    ColorAnimation { duration: Theme.motionShort4; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
                 }
+                Behavior on width {
+                    NumberAnimation { duration: Theme.motionMedium1; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
+                }
+                MouseArea {
+                    id: wsMa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        root.currentWorkspace = parent.index + 1
+                        Theme.exec("hyprctl", ["dispatch", "workspace", String(parent.index + 1)])
+                    }
+                }
+                StateLayer { anchors.fill: parent; cornerRadius: Theme.pillRadius; hoverSource: wsMa }
             }
         }
 
-        Rectangle { Layout.alignment: Qt.AlignHCenter; width: 36; height: 1; color: Theme.outline }
+        Rectangle { Layout.alignment: Qt.AlignHCenter; width: 36; height: 1; color: Theme.outlineVariant }
 
         GridLayout {
             columns: 2
@@ -81,32 +92,37 @@ Item {
                 ]
                 delegate: Rectangle {
                     required property var modelData
-                    width: 30; height: 30; radius: 99
+                    width: 30; height: 30; radius: Theme.pillRadius
                     color: Theme.surfaceContainerHighest
-                    border.color: Theme.outline
+                    border.color: Theme.outlineVariant
                     border.width: 1
                     ToolTip.visible: mh.containsMouse
                     ToolTip.text: modelData.tip
-                    Text { anchors.centerIn: parent; text: modelData.t; color: Theme.onSurfaceVariant; font.pointSize: 7 }
-                    Behavior on color { ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+                    Text { anchors.centerIn: parent; text: modelData.t; color: Theme.onSurfaceVariant; font: Theme.labelSmall }
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.motionShort3; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: Theme.motionShort3; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
+                    }
                     MouseArea { id: mh; anchors.fill: parent; hoverEnabled: true;
                         onClicked: console.log("status:", modelData.tip) }
+                    StateLayer { anchors.fill: parent; cornerRadius: Theme.pillRadius; hoverSource: mh }
                 }
             }
         }
 
-        RowLayout {
+        ColumnLayout {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 8
-            Button { text: "Lock"; font.pointSize: 8; onClicked: console.log("lock requested") }
-            Button { text: "Off"; font.pointSize: 8; onClicked: console.log("power menu requested") }
+            spacing: 6
+            Button { text: "Lock"; font: Theme.labelSmall; Layout.preferredWidth: 56; onClicked: Theme.exec("loginctl", ["lock-session"]) }
+            Button { text: "Off"; font: Theme.labelSmall; Layout.preferredWidth: 56; onClicked: console.log("power menu requested") }
         }
 
         // Breathing pulse status dot (solid)
         Rectangle {
             Layout.alignment: Qt.AlignHCenter
-            width: 10; height: 10; radius: 99
+            width: 10; height: 10; radius: Theme.pillRadius
             color: Theme.success
             border.color: Theme.onSurface
             border.width: 1
@@ -124,7 +140,7 @@ Item {
         spacing: 10
         visible: !root.isVertical
 
-        Text { text: "V"; color: Theme.accent; font.bold: true; font.pointSize: 16 }
+        Text { text: "V"; color: Theme.accent; font: Theme.titleMedium }
 
         Repeater {
             model: 4
@@ -133,21 +149,30 @@ Item {
                 property bool active: root.currentWorkspace === index + 1
                 width: active ? 34 : 14
                 height: 14
-                radius: 99
-                color: active ? Theme.active : Theme.surfaceContainerHighest
-                border.color: active ? Theme.active : Theme.outline
+                radius: Theme.pillRadius
+                color: active ? Theme.primary : Theme.surfaceContainerHighest
+                border.color: active ? Theme.primary : Theme.outlineVariant
                 border.width: 1
-                Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                MouseArea { anchors.fill: parent; onClicked: root.currentWorkspace = parent.index + 1 }
+                Behavior on color {
+                    ColorAnimation { duration: Theme.motionShort4; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
+                }
+                Behavior on width {
+                    NumberAnimation { duration: Theme.motionMedium1; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
+                }
+                MouseArea { id: wsMaH; anchors.fill: parent; hoverEnabled: true;
+                    onClicked: {
+                        root.currentWorkspace = parent.index + 1
+                        Theme.exec("hyprctl", ["dispatch", "workspace", String(parent.index + 1)])
+                    } }
+                StateLayer { anchors.fill: parent; cornerRadius: Theme.pillRadius; hoverSource: wsMaH }
             }
         }
 
-        Rectangle { width: 1; height: 36; color: Theme.outline }
-        Button { text: "Apps"; font.pointSize: 8; onClicked: console.log("launcher requested") }
-        Button { text: "Lock"; font.pointSize: 8; onClicked: console.log("lock requested") }
+        Rectangle { width: 1; height: 36; color: Theme.outlineVariant }
+        Button { text: "Apps"; font: Theme.labelSmall; onClicked: console.log("launcher requested") }
+        Button { text: "Lock"; font: Theme.labelSmall; onClicked: Theme.exec("loginctl", ["lock-session"]) }
         Rectangle {
-            width: 10; height: 10; radius: 99; color: Theme.success
+            width: 10; height: 10; radius: Theme.pillRadius; color: Theme.success
             border.color: Theme.onSurface
             border.width: 1
             SequentialAnimation on opacity {

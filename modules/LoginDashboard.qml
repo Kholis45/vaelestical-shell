@@ -2,24 +2,24 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// MODULE IV: Lockscreen / login manager solid (demo lokal).
+// MODULE IV: Lockscreen / login manager solid (M3E penuh, demo lokal).
 Item {
     id: root
     anchors.fill: parent
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.background
+        color: Theme.scrim
     }
 
     Rectangle {
         id: card
         anchors.centerIn: parent
         width: 420
-        height: 560
+        height: 580
         radius: Theme.cardRadius
         color: Theme.surface
-        border.color: Theme.outline
+        border.color: Theme.outlineVariant
         border.width: 1
 
         SequentialAnimation {
@@ -27,7 +27,7 @@ Item {
             NumberAnimation { target: card; property: "x"; to: card.x - 12; duration: 60 }
             NumberAnimation { target: card; property: "x"; to: card.x + 12; duration: 60 }
             NumberAnimation { target: card; property: "x"; to: card.x - 8; duration: 60 }
-            NumberAnimation { target: card; property: "x"; to: card.x; duration: 80; easing.type: Easing.OutCubic }
+            NumberAnimation { target: card; property: "x"; to: card.x; duration: 80; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
         }
 
         ColumnLayout {
@@ -37,48 +37,50 @@ Item {
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                width: 88; height: 88; radius: 99
+                width: 88; height: 88; radius: Theme.pillRadius
                 color: Theme.primaryContainer
                 border.color: Theme.accent; border.width: 2
-                Text { anchors.centerIn: parent; text: "KE"; color: Theme.accent; font.bold: true; font.pointSize: 24 }
+                Text { anchors.centerIn: parent; text: "KE"; color: Theme.accent; font: Theme.headlineSmall }
             }
-            Text { text: "PRIVATE EASTJAVA"; color: Theme.onSurface; font.bold: true; font.pointSize: 14;
+            Text { text: "PRIVATE EASTJAVA"; color: Theme.onSurface; font: Theme.titleMedium;
                 Layout.alignment: Qt.AlignHCenter }
-            Text { text: "@kholis • VAELESTICAL OS"; color: Theme.onSurfaceVariant; font.pointSize: 11;
+            Text { text: "@kholis • VAELESTICAL OS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium;
                 Layout.alignment: Qt.AlignHCenter }
-            Text { id: loginClock; text: "--:--"; color: Theme.onSurface; font.pointSize: 22; font.bold: true;
+            Text { id: loginClock; text: "--:--"; color: Theme.onSurface; font: Theme.displaySmall;
                 Layout.alignment: Qt.AlignHCenter }
 
-            TextField { id: userField; Layout.fillWidth: true; placeholderText: "Username"; text: "kholis" }
+            TextField { id: userField; Layout.fillWidth: true; font: Theme.bodyLarge; placeholderText: "Username"; text: "kholis" }
             RowLayout {
                 Layout.fillWidth: true
                 TextField {
                     id: passField
                     Layout.fillWidth: true
+                    font: Theme.bodyLarge
                     placeholderText: "Password (••••••••)"
                     echoMode: TextInput.Password
                 }
                 Button {
                     text: passField.echoMode === TextInput.Password ? "Show" : "Hide"
-                    font.pointSize: 9
+                    font: Theme.labelSmall
                     onClicked: passField.echoMode = passField.echoMode === TextInput.Password
                         ? TextInput.Normal : TextInput.Password
                 }
             }
-            CheckBox { id: capsBox; text: "Simulasikan CapsLock aktif"; checked: false }
+            CheckBox { id: capsBox; text: "Simulasikan CapsLock aktif"; font: Theme.labelMedium; checked: false }
             Rectangle {
                 Layout.fillWidth: true
-                height: 30
+                height: 32
                 radius: Theme.pillRadius
                 color: Theme.warning
                 visible: capsBox.checked
-                Text { anchors.centerIn: parent; text: "Caps Lock aktif!"; color: "#131318"; font.pointSize: 11; font.bold: true }
+                Text { anchors.centerIn: parent; text: "Caps Lock aktif!"; color: Theme.scrim; font: Theme.labelLarge }
             }
 
             RowLayout {
                 Layout.fillWidth: true
                 Button {
                     text: "Masuk"
+                    font: Theme.labelLarge
                     Layout.fillWidth: true
                     enabled: !busy.running
                     onClicked: {
@@ -95,19 +97,20 @@ Item {
                 }
                 BusyIndicator { id: busy; running: false; width: 28; height: 28 }
             }
-            Text { id: errText; text: ""; color: Theme.error; font.pointSize: 11 }
+            Text { id: errText; text: ""; color: Theme.error; font: Theme.labelMedium }
 
             Item { Layout.fillHeight: true }
 
             ComboBox {
                 Layout.fillWidth: true
+                font: Theme.labelMedium
                 model: ["Hyprland (Wayland)", "Vaelestical Shell Native"]
             }
             RowLayout {
                 Layout.fillWidth: true
-                Button { text: "Sleep"; Layout.fillWidth: true; onClicked: console.log("sleep") }
-                Button { text: "Restart"; Layout.fillWidth: true; onClicked: confirmDlg.open() }
-                Button { text: "Shutdown"; Layout.fillWidth: true; onClicked: confirmDlg.open() }
+                Button { text: "Sleep"; font: Theme.labelMedium; Layout.fillWidth: true; onClicked: Theme.exec("systemctl", ["suspend"]) }
+                Button { text: "Restart"; font: Theme.labelMedium; Layout.fillWidth: true; onClicked: { confirmDlg.powerAction = "reboot"; confirmDlg.open() } }
+                Button { text: "Shutdown"; font: Theme.labelMedium; Layout.fillWidth: true; onClicked: { confirmDlg.powerAction = "poweroff"; confirmDlg.open() } }
             }
         }
     }
@@ -126,10 +129,16 @@ Item {
 
     Dialog {
         id: confirmDlg
+        property string powerAction: ""
         title: "Konfirmasi daya"
         modal: true
         standardButtons: Dialog.Ok | Dialog.Cancel
-        Label { text: "Demo: aksi daya dibatalkan (countdown ada di UtilitiesAI)." }
-        onAccepted: console.log("power confirmed (demo)")
+        Label { text: "Demo: aksi daya dibatalkan (countdown ada di UtilitiesAI)."; font: Theme.bodyMedium }
+        onAccepted: {
+            if (powerAction !== "")
+                Theme.exec("systemctl", [powerAction])
+            else
+                console.log("power confirmed (demo)")
+        }
     }
 }

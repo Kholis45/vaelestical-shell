@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// MODULE E: Utilities, AI & system extensions solid (demo interaktif).
+// MODULE E: Utilities, AI & system extensions (M3E penuh, demo).
 Item {
     id: root
     width: 680
@@ -21,7 +21,7 @@ Item {
         anchors.rightMargin: 2
         radius: Theme.cardRadius
         color: Theme.surface
-        border.color: Theme.outline
+        border.color: Theme.outlineVariant
         border.width: 1
     }
 
@@ -39,11 +39,11 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "Clipboard history"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
-                    TextField { id: clipSearch; Layout.fillWidth: true; placeholderText: "Cari clipboard…" }
+                    Text { text: "Clipboard history"; color: Theme.onSurface; font: Theme.titleSmall }
+                    TextField { id: clipSearch; Layout.fillWidth: true; font: Theme.bodyMedium; placeholderText: "Cari clipboard…" }
                     ListView {
                         Layout.fillWidth: true; Layout.fillHeight: true
                         clip: true
@@ -51,7 +51,7 @@ Item {
                         delegate: Text {
                             required property var modelData
                             width: ListView.view.width
-                            text: "• " + modelData; color: Theme.onSurfaceVariant; font.pointSize: 10; elide: Text.ElideRight
+                            text: "• " + modelData; color: Theme.onSurfaceVariant; font: Theme.bodySmall; elide: Text.ElideRight
                             visible: clipSearch.text === "" || modelData.toLowerCase().indexOf(clipSearch.text.toLowerCase()) !== -1
                         }
                     }
@@ -62,13 +62,13 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "Launcher + hitung"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
-                    TextField { id: launchField; Layout.fillWidth: true; placeholderText: "firefox / 12*8-4…" }
-                    Text { id: launchOut; text: "Super+K • Enter eksekusi (demo)"; color: Theme.onSurfaceVariant; font.pointSize: 10; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                    Button { text: "Jalankan"; Layout.fillWidth: true; onClicked: {
+                    Text { text: "Launcher + hitung"; color: Theme.onSurface; font: Theme.titleSmall }
+                    TextField { id: launchField; objectName: "launchField"; Layout.fillWidth: true; font: Theme.bodyMedium; placeholderText: "firefox / 12*8-4…" }
+                    Text { id: launchOut; text: "Super+K • Enter eksekusi (demo)"; color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                    Button { text: "Jalankan"; font: Theme.labelLarge; Layout.fillWidth: true; onClicked: {
                         var m = launchField.text.match(/^\s*(-?\d+(?:\.\d+)?)\s*([+\-*/])\s*(-?\d+(?:\.\d+)?)\s*$/)
                         if (m) {
                             var r = m[2] === "+" ? (+m[1] + +m[3]) : m[2] === "-" ? (+m[1] - +m[3])
@@ -84,27 +84,27 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "Toast & OSD pills"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
-                    Button { text: "Tampilkan toast"; Layout.fillWidth: true; onClicked: { toastDemo.visible = true; toastHide.start() } }
+                    Text { text: "Toast & OSD pills"; color: Theme.onSurface; font: Theme.titleSmall }
+                    Button { text: "Tampilkan toast"; font: Theme.labelLarge; Layout.fillWidth: true; onClicked: { toastDemo.visible = true; toastHide.start() } }
                     Rectangle {
                         id: toastDemo
                         Layout.fillWidth: true
-                        height: 26
+                        height: 28
                         radius: Theme.pillRadius
-                        color: Theme.primary
+                        color: Theme.inverseSurface
                         visible: false
-                        Text { anchors.centerIn: parent; text: "Notifikasi DBus (demo)"; color: Theme.onPrimary; font.pointSize: 10 }
+                        Text { anchors.centerIn: parent; text: "Notifikasi DBus (demo)"; color: Theme.inverseOnSurface; font: Theme.labelMedium }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "OSD vol:"; color: Theme.onSurfaceVariant; font.pointSize: 10 }
+                        Text { text: "OSD vol:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                         Slider { id: osdVol; Layout.fillWidth: true; from: 0; to: 100; value: 40 }
-                        Text { text: Math.round(osdVol.value) + "%"; color: Theme.onSurface; font.pointSize: 10 }
+                        Text { text: Math.round(osdVol.value) + "%"; color: Theme.onSurface; font: Theme.labelMedium }
                     }
-                    Text { text: "CapsLock: OFF • Layout: ID"; color: Theme.onSurfaceVariant; font.pointSize: 10 }
+                    Text { text: "CapsLock: OFF • Layout: ID"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                 }
             }
 
@@ -112,17 +112,17 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "Ollama prompt"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
+                    Text { text: "Ollama prompt"; color: Theme.onSurface; font: Theme.titleSmall }
                     RowLayout {
                         Layout.fillWidth: true
-                        ComboBox { model: ["llama3", "qwen2", "mistral"] }
-                        TextField { id: llmField; Layout.fillWidth: true; placeholderText: "Tanya model lokal…" }
+                        ComboBox { font: Theme.labelMedium; model: ["llama3", "qwen2", "mistral"] }
+                        TextField { id: llmField; Layout.fillWidth: true; font: Theme.bodyMedium; placeholderText: "Tanya model lokal…" }
                     }
-                    Text { id: llmOut; text: "Respons muncul di sini (demo)."; color: Theme.onSurfaceVariant; font.pointSize: 10; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                    Button { text: "Kirim"; Layout.fillWidth: true; onClicked:
+                    Text { id: llmOut; text: "Respons muncul di sini (demo)."; color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                    Button { text: "Kirim"; font: Theme.labelLarge; Layout.fillWidth: true; onClicked:
                         llmOut.text = llmField.text === "" ? "Prompt kosong." : "Demo: '" + llmField.text + "' → OK (42 token)." }
                 }
             }
@@ -131,15 +131,15 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "Scratchpad & capture"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
-                    TextArea { Layout.fillWidth: true; Layout.preferredHeight: 60; placeholderText: "Catatan cepat (auto-save demo)…" }
+                    Text { text: "Scratchpad & capture"; color: Theme.onSurface; font: Theme.titleSmall }
+                    TextArea { Layout.fillWidth: true; Layout.preferredHeight: 60; font: Theme.bodyMedium; placeholderText: "Catatan cepat (auto-save demo)…" }
                     RowLayout {
                         Layout.fillWidth: true
-                        ComboBox { model: ["Dwindle", "Master", "Floating"] }
-                        Button { text: "Screenshot"; onClicked: console.log("grim/slurp (demo)") }
+                        ComboBox { font: Theme.labelMedium; model: ["Dwindle", "Master", "Floating"] }
+                        Button { text: "Screenshot"; font: Theme.labelMedium; onClicked: Theme.exec("sh", ["-c", 'grim -g "$(slurp)" ~/Pictures/vaelestical-$(date +%s).png']) }
                     }
                 }
             }
@@ -148,17 +148,17 @@ Item {
             Rectangle {
                 Layout.fillWidth: true; Layout.preferredHeight: 190
                 radius: Theme.cardRadius; color: Theme.surfaceContainer
-                border.color: Theme.outline; border.width: 1
+                border.color: Theme.outlineVariant; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 6
-                    Text { text: "Grafik CPU/GPU + tray + daya"; color: Theme.onSurface; font.bold: true; font.pointSize: 11 }
+                    Text { text: "Grafik CPU/GPU + tray + daya"; color: Theme.onSurface; font: Theme.titleSmall }
                     Canvas {
                         id: graph
                         Layout.fillWidth: true; Layout.preferredHeight: 70
                         onPaint: {
                             var ctx = getContext("2d")
                             ctx.clearRect(0, 0, width, height)
-                            ctx.strokeStyle = Theme.outline; ctx.lineWidth = 1
+                            ctx.strokeStyle = Theme.outlineVariant; ctx.lineWidth = 1
                             ctx.strokeRect(0.5, 0.5, width - 1, height - 1)
                             ctx.strokeStyle = Theme.accent; ctx.lineWidth = 2
                             ctx.beginPath()
@@ -171,8 +171,8 @@ Item {
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Tray: Discord Steam OBS"; color: Theme.onSurfaceVariant; font.pointSize: 10; Layout.fillWidth: true }
-                        Button { text: "Daya…"; onClicked: powerDlg.open() }
+                        Text { text: "Tray: Discord Steam OBS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.fillWidth: true }
+                        Button { text: "Daya…"; font: Theme.labelMedium; onClicked: powerDlg.open() }
                     }
                 }
             }
@@ -189,8 +189,8 @@ Item {
         modal: true
         standardButtons: Dialog.Ok | Dialog.Cancel
         ColumnLayout {
-            Text { text: "Shutdown dalam:"; color: Theme.onSurface }
-            Text { id: cdText; text: "10"; color: Theme.onSurface; font.pointSize: 24; font.bold: true }
+            Text { text: "Shutdown dalam:"; color: Theme.onSurface; font: Theme.bodyMedium }
+            Text { id: cdText; text: "10"; color: Theme.onSurface; font: Theme.headlineSmall }
         }
         onOpened: { cdText.text = "10"; cdTimer.start() }
         onClosed: cdTimer.stop()
