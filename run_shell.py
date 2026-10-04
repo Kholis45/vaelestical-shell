@@ -10,6 +10,10 @@ import sys
 import PySide6
 
 os.add_dll_directory(os.path.dirname(PySide6.__file__))
+# Gaya kontrol yang mendukung kustomisasi (slider tebal custom).
+# Di Linux/CachyOS default-nya sudah Basic; dipaksa di sini agar
+# hasil di Windows identik dan tanpa warning native-style.
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
 
 from PySide6.QtGui import QGuiApplication  # noqa: E402
 from PySide6.QtQml import QQmlApplicationEngine  # noqa: E402

@@ -1,3 +1,4 @@
+singleton Theme Theme.qml
 LeftSidebar LeftSidebar.qml
 CentralDashboard CentralDashboard.qml
 WallpaperPicker WallpaperPicker.qml

@@ -5,7 +5,8 @@ import "modules"
 
 // ============================================================
 // VAELESTICAL SHELL REV 2.0 — entry point (runnable di qmlscene)
-// Harness uji: test-bar atas untuk toggle tiap panel + status bawah.
+// Bahasa desain: Solid Material You M3 Expressive (tanpa kaca/blur).
+// Token warna & radius terpusat di Theme (modules/Theme.qml).
 // ============================================================
 ApplicationWindow {
     id: root
@@ -13,48 +14,48 @@ ApplicationWindow {
     width: 1366
     height: 768
     title: "Vaelestical Shell REV 2.0"
-    color: "transparent"
+    color: Theme.background
 
     // ---- global state ----
     property string gpuDriverStatus: "VMware SVGA 3D (fallback VM)"
     property string activeGpu: "VMware SVGA 3D"
     property real barHeight: 56
-    property real cornerRadius: 20
+    property real cornerRadius: Theme.cardRadius
     property string barPosition: "left" // top | bottom | left | right
     property bool lightMode: false
 
-    // ---- Material You tokens ----
-    property color baseWindow: "#0d0e12"
-    property color surfaceContainerBase: "#1a1b22"
-    property color surfaceHigh: "#262732"
-    property color borderColor: "#333545"
-    property color accentPrimary: "#a8c7fa"
-    property color activeFill: "#384661"
-    property color textPrimary: "#e3e2e6"
-    property color textSecondary: "#8e9099"
+    // ---- alias token (kompatibilitas) ----
+    property color baseWindow: Theme.background
+    property color surfaceContainerBase: Theme.surfaceContainer
+    property color surfaceHigh: Theme.surfaceContainerHigh
+    property color borderColor: Theme.outline
+    property color accentPrimary: Theme.accent
+    property color activeFill: Theme.primaryContainer
+    property color textPrimary: Theme.onSurface
+    property color textSecondary: Theme.onSurfaceVariant
 
-    // ---- backdrop (agar terlihat saat diuji di window) ----
-    Rectangle {
-        anchors.fill: parent
-        color: root.lightMode ? "#f5f6fa" : root.baseWindow
-        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.OutCubic } }
-    }
+    onLightModeChanged: Theme.dark = !lightMode
 
-    // ---- test bar ----
+    // ---- test bar (solid pill) ----
     Rectangle {
         id: testBar
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
+        anchors.topMargin: 8
         height: 44
-        color: "#1a1b22"
-        opacity: 0.96
+        radius: Theme.pillRadius
+        color: Theme.surfaceContainer
+        border.color: Theme.outline
+        border.width: 1
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
+            anchors.leftMargin: 14
+            anchors.rightMargin: 14
             spacing: 6
-            Text { text: "VAELESTICAL TEST"; color: root.textSecondary; font.pointSize: 9; font.bold: true }
+            Text { text: "VAELESTICAL TEST"; color: Theme.onSurfaceVariant; font.pointSize: 9; font.bold: true }
             Button { text: "Dash"; font.pointSize: 9; checkable: true; checked: true;
                 onToggled: dash.visible = checked }
             Button { text: "Control"; font.pointSize: 9; checkable: true; checked: false;
@@ -80,7 +81,7 @@ ApplicationWindow {
             Button { text: root.lightMode ? "Dark" : "Light"; font.pointSize: 9;
                 onClicked: root.lightMode = !root.lightMode }
             Item { Layout.fillWidth: true }
-            Text { text: root.activeGpu; color: root.textSecondary; font.pointSize: 9 }
+            Text { text: root.activeGpu; color: Theme.onSurfaceVariant; font.pointSize: 9 }
         }
     }
 
@@ -120,7 +121,6 @@ ApplicationWindow {
         anchors.bottomMargin: 10
         visible: false
         z: 120
-        onAccentChanged: console.log("aksen wallpaper:", accent)
     }
 
     // ---- Module D: control center ----
@@ -166,22 +166,27 @@ ApplicationWindow {
         z: 300
     }
 
-    // ---- status bar ----
+    // ---- status bar (solid pill) ----
     Rectangle {
         id: statusBar
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
+        anchors.bottomMargin: 8
         height: 26
-        color: "#1a1b22"
-        opacity: 0.96
+        radius: Theme.pillRadius
+        color: Theme.surfaceContainer
+        border.color: Theme.outline
+        border.width: 1
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            Text { text: "60 FPS • GPU layer cached • QtQuick 6"; color: root.textSecondary; font.pointSize: 9 }
+            anchors.leftMargin: 14
+            anchors.rightMargin: 14
+            Text { text: "60 FPS • Solid M3 • QtQuick 6"; color: Theme.onSurfaceVariant; font.pointSize: 9 }
             Item { Layout.fillWidth: true }
-            Text { text: root.gpuDriverStatus; color: root.textSecondary; font.pointSize: 9 }
+            Text { text: root.gpuDriverStatus; color: Theme.onSurfaceVariant; font.pointSize: 9 }
         }
     }
 

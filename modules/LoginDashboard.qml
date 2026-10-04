@@ -2,21 +2,14 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// MODULE IV: Lockscreen / login manager (demo lokal, tanpa PAM asli).
+// MODULE IV: Lockscreen / login manager solid (demo lokal).
 Item {
     id: root
-    property color accent: "#a8c7fa"
-    property color card: "#1a1b22"
-    property color border: "#333545"
-    property color txt1: "#e3e2e6"
-    property color txt2: "#8e9099"
-
     anchors.fill: parent
 
     Rectangle {
         anchors.fill: parent
-        color: "#0d0e12"
-        opacity: 0.90
+        color: Theme.background
     }
 
     Rectangle {
@@ -24,12 +17,10 @@ Item {
         anchors.centerIn: parent
         width: 420
         height: 560
-        radius: 20
-        color: root.card
-        border.color: root.border
+        radius: Theme.cardRadius
+        color: Theme.surface
+        border.color: Theme.outline
         border.width: 1
-        layer.enabled: true
-        layer.smooth: true
 
         SequentialAnimation {
             id: shake
@@ -46,16 +37,16 @@ Item {
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                width: 88; height: 88; radius: 44
-                color: "#384661"
-                border.color: root.accent; border.width: 2
-                Text { anchors.centerIn: parent; text: "KE"; color: root.accent; font.bold: true; font.pointSize: 24 }
+                width: 88; height: 88; radius: 99
+                color: Theme.primaryContainer
+                border.color: Theme.accent; border.width: 2
+                Text { anchors.centerIn: parent; text: "KE"; color: Theme.accent; font.bold: true; font.pointSize: 24 }
             }
-            Text { text: "PRIVATE EASTJAVA"; color: root.txt1; font.bold: true; font.pointSize: 14;
+            Text { text: "PRIVATE EASTJAVA"; color: Theme.onSurface; font.bold: true; font.pointSize: 14;
                 Layout.alignment: Qt.AlignHCenter }
-            Text { text: "@kholis • VAELESTICAL OS"; color: root.txt2; font.pointSize: 11;
+            Text { text: "@kholis • VAELESTICAL OS"; color: Theme.onSurfaceVariant; font.pointSize: 11;
                 Layout.alignment: Qt.AlignHCenter }
-            Text { id: loginClock; text: "--:--"; color: root.txt1; font.pointSize: 22; font.bold: true;
+            Text { id: loginClock; text: "--:--"; color: Theme.onSurface; font.pointSize: 22; font.bold: true;
                 Layout.alignment: Qt.AlignHCenter }
 
             TextField { id: userField; Layout.fillWidth: true; placeholderText: "Username"; text: "kholis" }
@@ -68,14 +59,21 @@ Item {
                     echoMode: TextInput.Password
                 }
                 Button {
-                    text: passField.echoMode === TextInput.Password ? "👁" : "🚫"
-                    font.pointSize: 10
+                    text: passField.echoMode === TextInput.Password ? "Show" : "Hide"
+                    font.pointSize: 9
                     onClicked: passField.echoMode = passField.echoMode === TextInput.Password
                         ? TextInput.Normal : TextInput.Password
                 }
             }
             CheckBox { id: capsBox; text: "Simulasikan CapsLock aktif"; checked: false }
-            Text { text: "⚠ Caps Lock aktif!"; color: "#fbbf24"; font.pointSize: 11; visible: capsBox.checked }
+            Rectangle {
+                Layout.fillWidth: true
+                height: 30
+                radius: Theme.pillRadius
+                color: Theme.warning
+                visible: capsBox.checked
+                Text { anchors.centerIn: parent; text: "Caps Lock aktif!"; color: "#131318"; font.pointSize: 11; font.bold: true }
+            }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -86,6 +84,7 @@ Item {
                     onClicked: {
                         if (passField.text === "") {
                             errText.text = "Password salah — coba lagi."
+                            errText.color = Theme.error
                             shake.start()
                         } else {
                             errText.text = ""
@@ -96,7 +95,7 @@ Item {
                 }
                 BusyIndicator { id: busy; running: false; width: 28; height: 28 }
             }
-            Text { id: errText; text: ""; color: "#ff6e6e"; font.pointSize: 11 }
+            Text { id: errText; text: ""; color: Theme.error; font.pointSize: 11 }
 
             Item { Layout.fillHeight: true }
 
@@ -122,7 +121,7 @@ Item {
     }
     Timer {
         id: okTimer; interval: 1200; repeat: false
-        onTriggered: { busy.running = false; errText.text = "Login demo berhasil."; errText.color = "#34d399" }
+        onTriggered: { busy.running = false; errText.text = "Login demo berhasil."; errText.color = Theme.success }
     }
 
     Dialog {
@@ -130,7 +129,7 @@ Item {
         title: "Konfirmasi daya"
         modal: true
         standardButtons: Dialog.Ok | Dialog.Cancel
-        Label { text: "Demo: aksi daya dibatalkan (countdown 10 dtk diimplementasikan di UtilitiesAI)." }
+        Label { text: "Demo: aksi daya dibatalkan (countdown ada di UtilitiesAI)." }
         onAccepted: console.log("power confirmed (demo)")
     }
 }
