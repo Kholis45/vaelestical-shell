@@ -75,5 +75,5 @@ def warn_filter(logs):
 def cmd_path():
     """Samakan logika cmdFile di main.qml."""
     if os.name == "nt":
-        return r"C:\Temp\vaelestical.cmd"
-    return "/tmp/vaelestical.cmd"
+        return r"C:\Temp\vxvicfg.cmd"
+    return "/tmp/vxvicfg.cmd"

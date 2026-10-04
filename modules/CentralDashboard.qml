@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../utils/Formatters.js" as F
+import "../utils/MathHelpers.js" as M
 
 // MODULE B: Central multi-tab dashboard + dynamic island (M3E penuh).
 Item {
@@ -10,6 +12,10 @@ Item {
     property string song: "ODESZA - Falls"
     property string songSub: "In Return (2014)"
     property real playPos: 72
+    // State visualizer GPU (di-update Timer 50ms di bawah).
+    property real spectrumTime: 0
+    property real spectrumEnergy: 0.5
+    property real spectrumEnergyVel: 0
 
     width: 620
     height: 660
@@ -169,9 +175,23 @@ Item {
                         RowLayout {
                             anchors.fill: parent; anchors.margins: 12; spacing: 12
                             Rectangle {
+                                id: coverArt
                                 width: 96; height: 96; radius: Theme.shapeMedium; color: Theme.primaryContainer
                                 border.color: Theme.accent; border.width: 1
                                 Text { anchors.centerIn: parent; text: "♪"; color: Theme.accent; font: Theme.headlineLarge }
+                                // Glow aksen GPU (M3ExpressiveBorder.frag); sembunyi bila shader error.
+                                ShaderEffect {
+                                    anchors.fill: parent
+                                    anchors.margins: -10
+                                    z: -1
+                                    visible: status !== ShaderEffect.Error
+                                    fragmentShader: "../shaders/M3ExpressiveBorder.frag"
+                                    property color accent: Theme.accent
+                                    property vector2d res: Qt.vector2d(width, height)
+                                    property real radius: 30
+                                    property real borderWidth: 2.0
+                                    property real glow: 0.6
+                                }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 4
@@ -220,6 +240,18 @@ Item {
                                         }
                                     }
                                 }
+                            }
+                            // Visualizer gelombang GPU (SpectrumWave.frag); aditif di bawah bar.
+                            ShaderEffect {
+                                id: waveShader
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 56
+                                visible: status !== ShaderEffect.Error
+                                fragmentShader: "../shaders/SpectrumWave.frag"
+                                property real time: root.spectrumTime
+                                property real energy: root.spectrumEnergy
+                                property color accent: Theme.accent
+                                property color base: Theme.surfaceContainer
                             }
                             Text { text: "[00:41] sunlight hums through the static…"; color: Theme.onSurfaceVariant; font: Theme.bodySmall }
                             Text { text: "Lirik tersinkron (.lrc) — demo statis"; color: Theme.onSurfaceVariant; font: Theme.bodySmall }
@@ -302,6 +334,17 @@ Item {
     }
 
     Timer { id: eqTick; property int n: 0; interval: 220; running: true; repeat: true; onTriggered: n++ }
+    // Visualizer GPU: waktu berjalan + energi dihaluskan via pegas (MathHelpers).
+    Timer {
+        interval: 50; running: true; repeat: true
+        onTriggered: {
+            root.spectrumTime += 0.05
+            var target = 0.55 + 0.25 * Math.sin(Date.now() / 900)
+            var s = M.springStep(root.spectrumEnergy, target, root.spectrumEnergyVel, 90, 12, 0.05)
+            root.spectrumEnergy = s.value
+            root.spectrumEnergyVel = s.velocity
+        }
+    }
     Timer {
         interval: 1000; running: true; repeat: true; triggeredOnStart: true
         onTriggered: {
@@ -315,6 +358,6 @@ Item {
     }
     Timer {
         interval: 60000; running: true; repeat: true; triggeredOnStart: true
-        onTriggered: uptimeText.text = "Uptime 2h 14m"
+        onTriggered: uptimeText.text = "Uptime " + F.formatDuration(134)
     }
 }

@@ -30,6 +30,7 @@ jobs:
         run: |
           python tests/test_parsers.py
           python tests/test_bridge.py
+          python tests/check_shader_conventions.py
 
       - name: QML smoke (load + exercise, 0 warning)
         run: python tests/smoke_qml.py
@@ -42,3 +43,19 @@ jobs:
 
       - name: QML soak (20 dtk interaksi acak)
         run: python tests/soak_qml.py
+
+  build-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Qt6 + build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build \
+            qt6-base-dev qt6-declarative-dev libglib2.0-dev
+
+      - name: Configure + build libvxvicfg_core
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build

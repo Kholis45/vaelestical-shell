@@ -11,6 +11,13 @@ Item {
 
     // SysBridge opsional (run_shell.py). Null di qmlscene → sinkronisasi mati.
     property var sysObj: typeof Sys !== "undefined" ? Sys : null
+
+    // Toggle cepat → perintah sistem nyata bila backend ada (demo bila tidak).
+    function runToggle(m, on) {
+        if (m.c !== undefined && m.c.length > 0)
+            Theme.exec(m.c[0], m.c.slice(1))
+        console.log(m.label, on)
+    }
     Connections {
         target: sysObj
         function onPolled(d) {
@@ -58,12 +65,12 @@ Item {
                 Layout.fillWidth: true
                 Repeater {
                     model: [
-                        { label: "Wi-Fi", sub: "Casa-5G", on: true },
-                        { label: "Bluetooth", sub: "2 perangkat", on: true },
-                        { label: "Mute", sub: "Semua output", on: false },
-                        { label: "DND", sub: "Jangan ganggu", on: false },
-                        { label: "GameMode", sub: "gamemoded", on: false },
-                        { label: "Night light", sub: "Filter biru", on: true }
+                        { label: "Wi-Fi", sub: "Casa-5G", on: true, c: ["nmcli", "radio", "wifi", "toggle"] },
+                        { label: "Bluetooth", sub: "2 perangkat", on: true, c: ["bluetoothctl", "power", "toggle"] },
+                        { label: "Mute", sub: "Semua output", on: false, c: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"] },
+                        { label: "DND", sub: "Jangan ganggu", on: false, c: [] },
+                        { label: "GameMode", sub: "gamemoded", on: false, c: ["sh", "-c", "gamemoded -t 2>/dev/null || pkill -f gamemoded 2>/dev/null; true"] },
+                        { label: "Night light", sub: "Filter biru", on: true, c: ["sh", "-c", "pgrep -x hyprsunset >/dev/null && pkill -x hyprsunset || (hyprsunset --temperature 3500 &); true"] }
                     ]
                     delegate: Rectangle {
                         required property var modelData
@@ -78,7 +85,7 @@ Item {
                             ColorAnimation { duration: Theme.motionShort4; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
                         }
                         MouseArea { id: togMa; anchors.fill: parent; hoverEnabled: true;
-                            onClicked: { parent.on = !parent.on; console.log(modelData.label, parent.on) } }
+                            onClicked: { parent.on = !parent.on; root.runToggle(modelData, parent.on) } }
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: 12
@@ -109,7 +116,7 @@ Item {
                             }
                             Switch {
                                 checked: on
-                                onToggled: { parent.parent.parent.on = checked; console.log(modelData.label, checked) }
+                                onToggled: { parent.parent.parent.on = checked; root.runToggle(modelData, checked) }
                             }
                         }
                         StateLayer { anchors.fill: parent; cornerRadius: Theme.cardRadius; hoverSource: togMa }

@@ -13,7 +13,12 @@ Item {
     height: 300
 
     function loadDefaultWallpaper() { root.currentIndex = 0; root.accent = root.swatches[0] }
-    function setWallpaper(i) { root.currentIndex = i; root.accent = root.swatches[i % root.swatches.length] }
+    function setWallpaper(i) {
+        root.currentIndex = i
+        root.accent = root.swatches[i % root.swatches.length]
+        // Terapkan ke sistem bila backend ada; demo bila tidak (tanpa warning).
+        Theme.exec("sh", ["-c", "swww img ~/Pictures/Wallpapers/current 2>/dev/null || swaybg -i ~/Pictures/Wallpapers/current 2>/dev/null; matugen image ~/Pictures/Wallpapers/current --mode " + (Theme.dark ? "dark" : "light") + " 2>/dev/null; true"])
+    }
     function extractAccentColor(i) { root.setWallpaper(i) }
 
     Rectangle {

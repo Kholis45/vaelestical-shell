@@ -8,3 +8,12 @@ LoginDashboard LoginDashboard.qml
 SettingsHub SettingsHub.qml
 UtilitiesAI UtilitiesAI.qml
 GamingAudioAdvanced GamingAudioAdvanced.qml
+UtilitiesFlyout UtilitiesFlyout.qml
+ProGamingOverlay ProGamingOverlay.qml
+Lockscreen Lockscreen.qml
+HakuTaskbar HakuTaskbar.qml
+HakuSettings HakuSettings.qml
+HakuClock HakuClock.qml
+HakuCava HakuCava.qml
+HakuWallpaper HakuWallpaper.qml
+HakuMenu HakuMenu.qml

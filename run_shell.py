@@ -1,4 +1,4 @@
-"""Launcher Vaelestical Shell REV 2.0 (setara pyside6-qml main.qml).
+"""Launcher vxvicfg Shell REV 2.0 (setara pyside6-qml main.qml).
 
 Pakai:  python run_shell.py
 Di Windows perlu os.add_dll_directory agar plugin QML (Controls/Layouts)
@@ -14,7 +14,7 @@ os.add_dll_directory(os.path.dirname(PySide6.__file__))
 # Di Linux/CachyOS default-nya sudah Basic; dipaksa di sini agar
 # hasil di Windows identik dan tanpa warning native-style.
 os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
-# IPC Hyprland (main.qml membaca /tmp/vaelestical.cmd via XHR):
+# IPC Hyprland (main.qml membaca /tmp/vxvicfg.cmd via XHR):
 # baca file lokal via XHR dimatikan default di Qt6 — nyalakan di sini.
 os.environ["QML_XHR_ALLOW_FILE_READ"] = "1"
 
@@ -35,6 +35,23 @@ class SysBridge(QObject):
     """
 
     polled = Signal(dict)  # {ws?, vol?, muted?, bri?, gpu?}
+
+    # Cache ketersediaan biner agar _poll tidak men-spawn subprocess yang
+    # pasti gagal setiap siklus (audit Tahap 3: anti CPU-spike).
+    # TIDAK dipakai di dalam execSync (kontrak unit-test tidak berubah).
+    _bin_cache = {}  # prog -> (ok, monotonic_ts)
+
+    @classmethod
+    def hasBinCached(cls, prog, ttl=60.0):
+        import time
+        import shutil
+        now = time.monotonic()
+        hit = cls._bin_cache.get(prog)
+        if hit is not None and now - hit[1] < ttl:
+            return hit[0]
+        ok = shutil.which(prog) is not None
+        cls._bin_cache[prog] = (ok, now)
+        return ok
 
     @Slot(str, result=bool)
     def hasBin(self, name):

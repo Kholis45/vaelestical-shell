@@ -1,13 +1,19 @@
-# Vaelestical Shell REV 2.0
+# vxvicfg shell REV 2.0 Ultimate
 
 ![Version](https://img.shields.io/badge/Version-REV%202.0-blue)
 ![Qt6](https://img.shields.io/badge/Qt%20Quick%206-Functional-brightgreen)
-![Platform](https://img.shields.io/badge/Platform-Linux%20Universal-orange)
+![Backend](https://img.shields.io/badge/Backend-C%2B%2B20%20%2B%20Quickshell-orange)
 ![Style](https://img.shields.io/badge/Style-Solid%20Material%20You%20M3-purple)
+![Tests](https://img.shields.io/badge/Tests-PASS%20%7C%200%20warnings-brightgreen)
 
-> Shell desktop Qt Quick 6 berestetika Caelestia dengan bahasa desain
+> Desktop shell Qt Quick 6 berestetika Caelestia dengan bahasa desain
 > **Solid Material You M3 Expressive** — tanpa glassmorphism/blur,
 > kontras tajam, rendering ringan.
+>
+> Dua entry point berbagi `modules/` + singleton `Theme` yang sama:
+> **`main.qml`** (qmlscene / PySide6 — untuk dev & test) dan
+> **`shell.qml`** (Quickshell layer-shell — untuk produksi di Hyprland),
+> didukung **C++20 native core** (`src/` → plugin `Vxvicfg.Core`).
 
 ---
 
@@ -15,17 +21,20 @@
 
 | Komponen | Minimal | Disarankan |
 |----------|---------|------------|
-| OS | Linux apa pun (CachyOS, Ubuntu 20.04+, Fedora 35+, Arch) | CachyOS / Arch |
+| OS | Linux apa pun (CachyOS, Ubuntu 20.04+, Fedora 35+, Arch) | CachyOS / Arch + Hyprland |
 | RAM | 4 GB | 8 GB |
 | GPU | OpenGL 3.3+ | Akselerasi hardware aktif |
 | Display | X11 / Wayland | Wayland (Hyprland) |
 
-Dependensi runtime hanya **Qt 6**: `QtQuick`, `QtQuick.Controls`, `QtQuick.Layouts`.
-Tidak ada plugin C++ — murni QML sehingga langsung jalan di `qmlscene`.
+| Lapisan | Dependensi |
+|---------|-----------|
+| UI dev/test | `qt6-base qt6-declarative` (qmlscene) atau `pip install PySide6` |
+| Produksi Wayland | `quickshell-git`, `hyprland`, `pipewire`, `wireplumber`, `networkmanager`, `bluez`, `matugen-bin`, `brightnessctl`, `playerctl` |
+| Build C++ core | `cmake`, `ninja`, `qt6-base`, `qt6-declarative` (PipeWire/NVML/PAM opsional — selalu bisa build) |
 
 ---
 
-## 🚀 Instalasi
+## 🚀 Instalasi & Menjalankan
 
 ### 1. Install Qt 6 + Git sesuai distro
 
@@ -36,50 +45,75 @@ Tidak ada plugin C++ — murni QML sehingga langsung jalan di `qmlscene`.
 | **Fedora / RHEL / CentOS** | `sudo dnf install -y qt6-qtbase qt6-qtdeclarative git` |
 | **openSUSE** | `sudo zypper install -y qt6-base qt6-declarative git` |
 
-> Paket `qmlscene` biasanya ikut dalam `qt6-declarative` / `qt6-base-dev`.
-> Cek dengan: `qmlscene --version` (harus 6.x).
-
 ### 2. Clone repositori
 
 ```bash
-git clone https://github.com/Kholis45/vaelestical-shell.git
-cd vaelestical-shell
+git clone https://github.com/Kholis45/vxvicfg-shell.git
+cd vxvicfg-shell
 ```
 
-### 3. Jalankan — pilih salah satu metode
+### 3. Jalankan — pilih mode
 
-**Metode 1 — `qmlscene` (utama, Linux/CachyOS):**
+**Mode dev/test — `qmlscene` (Linux):**
 
 ```bash
 qmlscene main.qml
 ```
 
-> Jika slider custom tampil seperti slider bawaan (tidak tebal),
-> paksa style yang mendukung kustomisasi:
-> ```bash
-> QT_QUICK_CONTROLS_STYLE=Basic qmlscene main.qml
-> ```
-> (Di Linux umumnya tidak perlu — default-nya sudah Basic.)
+> Jika slider custom tampil seperti slider bawaan, paksa style Basic:
+> `QT_QUICK_CONTROLS_STYLE=Basic qmlscene main.qml`
 
-**Metode 2 — `run_shell.py` (PySide6, lintas platform):**
+**Mode dev/test — `run_shell.py` (PySide6, lintas platform incl. Windows):**
 
 ```bash
 pip install PySide6
 python run_shell.py
 ```
 
-> Butuh Python 3.10+ dan `pip`. Launcher ini otomatis menangani
-> pencarian DLL plugin QML di Windows, memaksa style Basic, dan
-> menyalakan IPC Hyprland. Cocok untuk uji coba di Windows.
+> Menangani DLL plugin QML di Windows, memaksa style Basic, menyalakan
+> IPC Hyprland, dan menyediakan objek `Sys` (SysBridge: eksekusi aman +
+> polling telemetri). Tanpa `Sys` (qmlscene mentah), shell otomatis
+> fallback mode demo `console.log` — tetap bisa dibuka.
 
-### 4. Verifikasi instalasi
+**Mode produksi — Quickshell layer-shell (Hyprland/Wayland):**
+
+```bash
+quickshell -p shell.qml
+```
+
+> `shell.qml` = `ShellRoot` + `PanelWindow` per layar (`Top` layer,
+> namespace `vxvicfg-*`, `ExclusionMode.Ignore`, fokus keyboard
+> `OnDemand` hanya untuk panel interaktif). Pasang `libvxvicfg_core`
+> (lihat Build C++ Core) untuk telemetri/Aksi native.
+
+**Mode produksi — paket distro:**
+
+```bash
+# Arch / CachyOS (AUR): paket vxvicfg-shell-git
+makepkg -si  # memakai PKGBUILD
+
+# NixOS / Home Manager (flake):
+# programs.vxvicfg-shell.enable = true;
+```
+
+### 4. Build C++ core (opsional, untuk telemetri native)
+
+```bash
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+Menghasilkan `libvxvicfg_core.so` → `import Vxvicfg.Core 1.0`
+(`Gpu`, `Audio`, `Net`, `Bt`, `Tray`, `Notifs`, `Matugen`, `Pam`).
+Seluruh modul QML tetap jalan **tanpa** plugin ini (mode demo).
+
+### 5. Verifikasi instalasi
 
 ```bash
 qmlscene --version        # harus 6.x
 python run_shell.py       # jendela shell terbuka = instalasi beres
+python tests/smoke_qml.py # SMOKE: PASS, 0 warning = sehat
 ```
-
-Lanjut ke bagian Uji Coba Pertama dan Shortcut di bawah.
 
 ---
 
@@ -87,31 +121,28 @@ Lanjut ke bagian Uji Coba Pertama dan Shortcut di bawah.
 
 Saat jendela terbuka (1366×768):
 
-1. **Test-bar atas** — tombol toggle tiap panel:
-   `Dash` • `Control` • `Wallpaper` • `Settings` • `Utils` • `Gaming` • `Lock`,
+1. **Test-bar atas** — toggle tiap panel:
+   `Dash` • `Control` • `Wallpaper` • `Settings` • `Utils` • `Gaming` •
+   `Lock` • `Flyout` • `Pro` • `LScreen`,
    plus ComboBox posisi bar (`left/top/bottom/right`) dan tombol `Light/Dark`.
 2. **Sidebar kiri** — titik workspace 1–4 (klik untuk pindah), status pill,
    dan dot hijau berdenyut.
 3. **Dashboard kanan** — Dynamic Island + 4 tab pill:
    `Dashboard` (jam live, cuaca, info sistem) • `Media` (kontrol + boost 150%)
    • `Performance` (CPU/GPU/RAM) • `Workspaces`.
-4. **Shortcut keyboard** — tabel lengkap ada di bagian Shortcut di bawah:
-   `Ctrl+D/W/C/S/U/G/L` saat window fokus, atau `Super+…` global via Hyprland.
+4. **Shortcut keyboard** — `Ctrl+D/W/C/S/U/G/L/O/P` dan `Ctrl+Shift+L`
+   saat window fokus (tabel lengkap di bawah), atau `Super+…` global
+   via Hyprland.
 
-Panel lain (`ControlCenter`, `WallpaperPicker`, `SettingsHub`, `UtilitiesAI`,
-`GamingAudioAdvanced`, `LoginDashboard`) default tersembunyi — nyalakan
-dari test-bar sesuai kebutuhan agar tidak bertumpuk.
+Semua panel default tersembunyi kecuali Dashboard dan Haku taskbar bawah —
+nyalakan sisanya dari shortcut (`Ctrl+T/H/N/V/M/B`) atau bind `Super+…`
+sesuai kebutuhan agar tidak bertumpuk.
 
 ---
 
 ## ⌨️ Shortcut
 
-Dua lapis shortcut, sesuai konteks fokus:
-
 ### A. Dalam window shell (`Ctrl+…`, selalu tersedia)
-
-Aktif saat window shell fokus. Toggle show/hide tiap panel
-(terdaftar di `main.qml`, bisa diubah di blok `Shortcut`):
 
 | Shortcut | Panel |
 |----------|-------|
@@ -121,7 +152,16 @@ Aktif saat window shell fokus. Toggle show/hide tiap panel
 | `Ctrl+S` | Settings |
 | `Ctrl+U` | Utilities (+ launcher & kalkulator) |
 | `Ctrl+G` | Gaming & audio advanced |
-| `Ctrl+L` | Lockscreen / login |
+| `Ctrl+L` | Lockscreen / login (utama) |
+| `Ctrl+O` | Utilities flyout (toast/OSD/Ollama/catatan) |
+| `Ctrl+P` | Pro gaming overlay (HUD/GPU/EQ/Dante/AUR) |
+| `Ctrl+Shift+L` | Lockscreen alternatif (PAM) |
+| `Ctrl+T` | Haku taskbar bawah |
+| `Ctrl+H` | Haku settings modal |
+| `Ctrl+N` | Haku wallpaper grid |
+| `Ctrl+V` | Haku cava visualizer |
+| `Ctrl+M` | Haku context menu |
+| `Ctrl+B` | Haku desktop clock |
 
 ### B. Global di Hyprland (`Super+…`, perlu didaftarkan)
 
@@ -129,10 +169,8 @@ Aktif saat window shell fokus. Toggle show/hide tiap panel
 
 ```bash
 # Tambahkan ke ~/.config/hypr/hyprland.conf (sesuaikan path clone):
-source = ~/vaelestical-shell/hyprland/vaelestical-binds.conf
+source = ~/vxvicfg-shell/hyprland/vxvicfg-binds.conf
 ```
-
-Isinya (`hyprland/vaelestical-binds.conf`):
 
 | Bind | Perintah terkirim |
 |------|-------------------|
@@ -143,12 +181,20 @@ Isinya (`hyprland/vaelestical-binds.conf`):
 | `Super+U` | toggle utilities |
 | `Super+G` | toggle gaming |
 | `Super+L` | toggle lockscreen |
+| `Super+T` | toggle Haku taskbar |
+| `Super+H` | toggle Haku settings modal |
+| `Super+N` | toggle Haku wallpaper grid |
+| `Super+V` | toggle Haku cava visualizer |
+| `Super+M` | toggle Haku context menu |
+| `Super+B` | toggle Haku desktop clock |
 | `Super+Shift+T` | toggle tema gelap/terang |
 
 **2. Cara kerja (IPC file-based, QML murni):** tiap bind menulis satu kata
-ke `/tmp/vaelestical.cmd`; shell membaca file itu tiap 250ms dan toggle
-panel yang sesuai. Tanpa shell yang jalan, bind tidak ngapa-ngapain
-(terverifikasi end-to-end via smoke test).
+ke `/tmp/vxvicfg.cmd`; shell membaca file itu tiap 250ms dan toggle
+panel yang sesuai (`dash wall control settings utils gaming lock theme
+flyout pro lock2 taskbar hakusettings hakuwall cava hakumenu hakuclock`
+via `handleCommand()` di `main.qml`). Tanpa shell yang
+jalan, bind tidak ngapa-ngapain (terverifikasi end-to-end via smoke test).
 
 **3. Wajib untuk metode `qmlscene`:** baca file lokal via XHR dimatikan
 default di Qt6 — aktifkan di `hyprland.conf`:
@@ -162,17 +208,17 @@ env = QML_XHR_ALLOW_FILE_READ,1
 **4. Autostart shell (opsional, di `hyprland.conf`):**
 
 ```conf
-exec-once = qmlscene ~/vaelestical-shell/main.qml
-# atau:
-# exec-once = python ~/vaelestical-shell/run_shell.py
+exec-once = quickshell -p ~/vxvicfg-shell/shell.qml
+# atau mode dev:
+# exec-once = qmlscene ~/vxvicfg-shell/main.qml
+# exec-once = python ~/vxvicfg-shell/run_shell.py
 ```
 
 ### C. Kustomisasi shortcut
 
-- **Ubah/hapus bind global:** edit `hyprland/vaelestical-binds.conf`
-  (format `bind = SUPER, <tombol>, exec, sh -c 'echo <perintah> >> /tmp/vaelestical.cmd'`),
-  lalu `hyprctl reload`. Daftar perintah valid: `dash wall control settings
-  utils gaming lock theme` (diterima di `handleCommand()` pada `main.qml`).
+- **Ubah/hapus bind global:** edit `hyprland/vxvicfg-binds.conf`
+  (format `bind = SUPER, <tombol>, exec, sh -c 'echo <perintah> >> /tmp/vxvicfg.cmd'`),
+  lalu `hyprctl reload`.
 - **Ubah shortcut dalam window:** edit blok `Shortcut` di akhir `main.qml`
   (properti `sequence`), mis. `"Ctrl+D"` → `"F12"`.
 - **Cek konflik:** bind menimpa bind default Hyprland untuk tombol yang sama;
@@ -189,9 +235,10 @@ Semua warna, bentuk, tipografi & motion terpusat di **`modules/Theme.qml`**
 |----------|-------|--------|
 | Warna | `primary…tertiary…error` + `Container`/`on…`, `surfaceContainer*`, `outline(Variant)`, `inverse*`, `scrim` | dark & light baseline M3 |
 | Aksen proyek | `accent`, `active`, `success`, `warning` | `#a8c7fa` dkk. |
+| Alias solid | `baseWindow #0d0e12`, `surfaceContainerBase #1a1b22`, `surfaceHigh #262732`, `borderColor #333545`, `accentPrimary #a8c7fa`, `activeFill #384661` | untuk OSD/HUD/layer-shell |
 | Bentuk (resmi M3) | `shapeExtraSmall 4` → `shapeExtraLarge 28`, `shapeFull` | card = `shapeLarge` (16), pill = 99 |
-| Tipografi | `displayMedium/Large`, `headlineSmall/Medium`, `titleSmall/Medium`, `bodySmall/Medium`, `labelSmall/Medium/Large` | dipakai via `font: Theme.titleSmall` |
-| Motion M3 | `emphasized` cubic-bezier(0.05, 0.7, 0.1, 1.0), durasi `motionShort3/Short4…` | `easing.type: Easing.Bezier` |
+| Tipografi | `display…`, `headline…`, `title…`, `body…`, `label…` | dipakai via `font: Theme.titleSmall` |
+| Motion | `emphasized` cubic-bezier M3 + durasi pegas `dColor 180` / `dScale 150` / `dOpacity 200` / `dResize 220` | `OutCubic` warna/lebar, `OutBack` skala/tinggi |
 | State layer | `stateHover 8%` / `statePressed 12%` via komponen `StateLayer` | overlay hover bawaan M3 |
 
 Ganti mode gelap/terang dari UI (tombol `Light/Dark` atau switch di
@@ -202,28 +249,117 @@ satu-satunya bagian yang belum 100% M3.
 
 ---
 
+## 🧩 Modul UI (`modules/`)
+
+| File | Isi |
+|------|-----|
+| `Theme.qml` | Singleton token M3E (wajib diimpor implisit semua modul) |
+| `StateLayer.qml` | Overlay hover/press M3 |
+| `LeftSidebar.qml` | Bar apung + workspace switcher + status pill + sesi daya |
+| `CentralDashboard.qml` | Dynamic Island + 4 tab (info, media+lirik, telemetri, workspace) |
+| `WallpaperPicker.qml` | Wallpaper carousel + aksen Material You + `swww`/`matugen` |
+| `ControlCenter.qml` | Wi-Fi/BT/DND/GameMode/Night + audio PipeWire + slider + game launcher |
+| `LoginDashboard.qml` | Lockscreen utama (kartu login + daya) |
+| `Lockscreen.qml` | Lockscreen alternatif (PAM + pemilih sesi + CapsLock warning) |
+| `SettingsHub.qml` | Layout/posisi, personalisasi, hardware, modul, tentang |
+| `UtilitiesAI.qml` | Clipboard, launcher+kalkulator (`launchField`), toast/OSD, Ollama, scratchpad |
+| `UtilitiesFlyout.qml` | Flyout cepat: OSD ganda, toast, prompt Ollama, catatan, screenshot |
+| `GamingAudioAdvanced.qml` | Modul gaming/audio tingkat lanjut |
+| `ProGamingOverlay.qml` | HUD MangoHud, profil GPU/kipas, EQ/DSP, Dante, AUR, meter net, purge shader |
+| `HakuTaskbar.qml` | Bottom pill taskbar: launcher + ikon tengah + status pill (Hakuspace) |
+| `HakuSettings.qml` | Center modal [General][Theme][Setting] + search + toggle rows |
+| `HakuClock.qml` | Jam desktop monospace raksasa + tanggal |
+| `HakuCava.qml` | Strip bar visualizer mengambang (top/bottom) |
+| `HakuWallpaper.qml` | Grid thumbnail wallpaper + search |
+| `HakuMenu.qml` | Context menu dark + submenu Waybar (`openAt(x, y)`) |
+
+> `modules/bar|dashboard|launcher|lock|osd|…/`, `components/`, `services/`,
+> `plugin/`, `utils/`, `scripts/`, `nix/`, `extras/`, `assets/` adalah
+> **pohon referensi Caelestia** (butuh plugin `Caelestia.*` + Quickshell) —
+> pasif terhadap test-suite dan tidak terdaftar di `modules/qmldir`.
+> Lihat “Peta Integrasi” di bawah bila ingin mem-porting-nya.
+
+---
+
+## ⚙️ Backend C++ (`src/` → `Vxvicfg.Core`)
+
+| Service | Sumber data | Fallback |
+|---------|------------|----------|
+| `GpuTelemetry` | `nvidia-smi` (async) / sysfs AMD (`gpu_busy_percent`, `hwmon`) | VMware SVGA (`0x15ad`) → beban emulasi CPU; default valid, tak pernah throw |
+| `PipeWireService` | `wpctl` get-volume/status (async paralel) | Nilai terakhir dipertahankan; nama sink disanitasi anti-injeksi |
+| `NetworkManager` / `BluetoothService` | `nmcli` / `bluetoothctl` via D-Bus + CLI (async, watchdog) | Parse defensif (SSID ber-kolon aman); argv langsung tanpa shell |
+| `NotificationDaemon` | `org.freedesktop.Notifications` di D-Bus sesi | Gagal registrasi → no-op anggun + DND switch |
+| `StatusNotifierTray` | `org.kde.StatusNotifierWatcher` (async) + enumerasi lokal | Tray demo statis di QML |
+| `MatugenEngine` | Sampling `QImage` di worker thread + `matugen` fire-and-forget | Counter generasi anti-race; warna default `#a8c7fa` |
+| `PamAuth` | `libpam` bila ada (`HAS_PAM`), `QtConcurrent` + `QPointer` guard | Build tanpa PAM → accept (mode demo) |
+
+**Aturan audit Tahap 3 yang berlaku untuk semua kode baru:** tidak ada
+`waitForFinished()`/DBus `.call()` sinkron di thread UI, tidak ada raw
+pointer tanpa parent/`QPointer`, tidak ada interpolasi shell tanpa sanitasi,
+dan setiap kegagalan backend mengembalikan default valid.
+
+---
+
+## 📜 JavaScript & 🎆 Shader GLSL
+
+Logika non-visual dipisah dari QML ke modul JS murni (`.pragma library`,
+stateless, tidak pernah throw — input rusak → fallback):
+
+| File | API |
+|------|-----|
+| `utils/Formatters.js` | `pad2`, `formatClock`, `formatBytes`, `formatDuration`, `formatTemp`, `formatPing`, `formatPercent` |
+| `utils/ColorUtils.js` | `isHex`, `normalizeHex`, `hexToRgb`/`rgbToHex`, `mix`, `withAlpha`, `luminance`, `contrastOn` |
+| `utils/MathHelpers.js` | `clamp`, `lerp`, `smoothstep`, `springStep` (pegas redam), `bezier`, `wavePhase` |
+
+Dipakai via `import "../utils/Formatters.js" as F` (path relatif dari
+`modules/`). Contoh nyata: jam lockscreen (`F.formatClock`), validasi hex
+aksen (`C.isHex`), energi visualizer yang dihaluskan pegas
+(`M.springStep` tiap 50ms).
+
+Efek GPU via `ShaderEffect` + GLSL ES (`shaders/*.frag`, uniform
+di-bind otomatis dari properti QML senama):
+
+| Shader | Fungsi | Dipakai di |
+|--------|--------|-----------|
+| `M3ExpressiveBorder.frag` | Ring aksen SDF anti-aliased + glow luar (tengah transparan) | Glow cover art `CentralDashboard` tab Media |
+| `SpectrumWave.frag` | 3 lapis sinus prosedural, amplitudo ikut uniform `energy` | Strip visualizer 56px di kartu visualizer |
+
+Aturan keras shader (ditengakkan `check_shader_conventions.py`):
+**jangan deklarasikan properti/uniform bernama** `x y z width height
+opacity visible enabled scale rotation` (+ properti `ShaderEffect`:
+`fragmentShader status …`) — menimpa member `Item` (sebagian FINAL)
+membuat engine **gagal load total**. Kasus nyata yang pernah terjadi:
+`property real width` → di-rename ke `borderWidth`. Selalu guard
+`visible: status !== ShaderEffect.Error`; di backend software shader
+diam-tidak-render (aman untuk test), animasi hidup di GL hardware.
+
+---
+
 ## 📁 Struktur Proyek
 
 ```
-vaelestical-shell/
-├── main.qml                    # Entry point (test-bar + semua panel)
-├── run_shell.py                # Launcher PySide6 (pengganti qmlscene)
+vxvicfg-shell/
+├── main.qml                    # Entry dev/test (test-bar + semua panel)
+├── shell.qml                   # Entry produksi Quickshell layer-shell
+├── run_shell.py                # Launcher PySide6 + SysBridge (Sys.*)
+├── CMakeLists.txt              # Build libvxvicfg_core.so
+├── PKGBUILD                    # Paket AUR vxvicfg-shell-git
+├── flake.nix                   # Flake Nix + Home Manager module
 ├── hyprland/
-│   └── vaelestical-binds.conf  # Keybind Super (source dari hyprland.conf)
-├── generate_preview.py         # Generator mockup ui_preview.png (Pillow)
-├── ui_preview.png              # Mockup 1920x1080
-├── modules/
-│   ├── qmldir                  # Registrasi modul + singleton Theme
-│   ├── Theme.qml               # Singleton token M3E (warna, type, shape, motion)
-│   ├── StateLayer.qml          # Overlay state-layer hover/press M3
-│   ├── LeftSidebar.qml         # Module A - pill sidebar + workspace
-│   ├── CentralDashboard.qml    # Module B - dashboard 4 tab + island
-│   ├── WallpaperPicker.qml     # Module C - wallpaper + aksen M3
-│   ├── ControlCenter.qml       # Module D - quick settings + slider tebal
-│   ├── LoginDashboard.qml      # Module IV - lockscreen + form login
-│   ├── SettingsHub.qml         # Module V - settings + readout sistem
-│   ├── UtilitiesAI.qml         # Module E - clipboard, launcher, OSD, LLM…
-│   └── GamingAudioAdvanced.qml # Module F - FPS HUD, EQ, AUR, VM, net…
+│   └── vxvicfg-binds.conf  # Keybind Super (source dari hyprland.conf)
+├── modules/                    # Modul QML aktif (terdaftar di qmldir)
+│   ├── qmldir / Theme.qml / StateLayer.qml
+│   ├── LeftSidebar / CentralDashboard / WallpaperPicker / ControlCenter
+│   ├── LoginDashboard / Lockscreen / SettingsHub
+│   └── UtilitiesAI / UtilitiesFlyout / GamingAudioAdvanced / ProGamingOverlay
+├── src/                        # C++20 core (services/ + engine/ + plugin)
+├── utils/                      # Helper JS murni: Formatters, ColorUtils, MathHelpers
+│                               # (+ *.qml referensi Caelestia di folder yang sama, pasif)
+├── shaders/                    # GLSL: M3ExpressiveBorder + SpectrumWave (ShaderEffect)
+├── components/ services/       # Kit UI + singleton referensi Caelestia (pasif)
+├── plugin/                     # C++ Caelestia.* referensi (pasif)
+├── scripts/ extras/ nix/ assets/
+├── tests/                      # Suite otomatis (lihat bawah)
 └── README.md                   # File ini
 ```
 
@@ -239,16 +375,19 @@ vaelestical-shell/
 | Error `Cannot load library ... qtquick*plugin.dll` (Windows) | Jangan pakai `pyside6-qml` mentah — gunakan `python run_shell.py` |
 | `file ... Expected token` saat load | Pastikan `git status` bersih dari edit setengah jalan; file QML wajib 1 root object |
 | Animasi patah-patah | Tutup aplikasi berat; shell ini tanpa blur/GPU-cache jadi ringan |
-| Wayland gagal | Coba `QT_QPA_PLATFORM=xcb qmlscene main.qml` |
+| Wayland gagal (mode dev) | Coba `QT_QPA_PLATFORM=xcb qmlscene main.qml` |
+| Quickshell: modul tak ditemukan | Pastikan working dir = root repo atau install via CMake ke prefix Quickshell |
+| `Cannot override FINAL property` (width/height/…) | Properti QML/uniform shader menabrak member `Item` — rename (mis. `width` → `borderWidth`); lihat aturan shader di atas |
 
 > Catatan backend: aksi sistem lewat **`Sys` (SysBridge di `run_shell.py`)**
 > via helper `Theme.exec*` — mode `qmlscene` (tanpa `Sys`) otomatis fallback
-> demo `console.log`. Yang sudah tersambung nyata: workspace Hyprland
-> (`hyprctl dispatch`), kontrol media (`playerctl`), lock (`loginctl`),
+> demo `console.log`. Tersambung nyata: workspace Hyprland (`hyprctl
+> dispatch`), kontrol media (`playerctl`), lock (`loginctl`),
 > sleep/power (`systemctl`), screenshot (`grim`+`slurp`), volume (`wpctl`),
-> brightness (`brightnessctl`), launcher aplikasi, plus polling telemetri
+> brightness (`brightnessctl`), Wi-Fi/BT toggle (`nmcli`/`bluetoothctl`),
+> wallpaper (`swww`/`matugen`), launcher aplikasi, plus polling telemetri
 > (workspace aktif, volume/mute, brightness, NVIDIA) yang tersinkron ke UI.
-> Sisanya (nmcli, bluetoothctl, PAM, AUR, dsb.) masih stub bertahap.
+> PAM asli aktif bila `libvxvicfg_core` terpasang.
 
 ---
 
@@ -260,14 +399,34 @@ Suite otomatis di `tests/` (headless via Qt offscreen, jalan di CI):
 |-------|-----|----------|
 | `test_parsers.py` | 14 unit test parser telemetri (hyprctl, wpctl, nvidia-smi, brightness + kasus rusak) | `python tests/test_parsers.py` |
 | `test_bridge.py` | 11 unit test `SysBridge` (kegagalan aman, sinyal polling) | `python tests/test_bridge.py` |
+| `check_shader_conventions.py` | Regression: properti/uniform `ShaderEffect` tidak menimpa member reserved | `python tests/check_shader_conventions.py` |
 | `smoke_qml.py` | Load + exercise semua panel/tab/workspace/posisi-bar/mode, gerbang 0 warning | `python tests/smoke_qml.py` |
 | `interact_qml.py` | Klik mouse & ketikan keyboard beneran (QTest + hook `debugGeom`) | `python tests/interact_qml.py` |
 | `ipc_qml.py` | IPC file → UI end-to-end | `python tests/ipc_qml.py` |
 | `soak_qml.py` | Interaksi acak N detik (`SOAK_SECONDS`, default 90) | `SOAK_SECONDS=20 python tests/soak_qml.py` |
 
 CI GitHub Actions (`.github/workflows/ci.yml`) menjalankan semuanya di
-Ubuntu + PySide6 setiap push/PR. Status terakhir di mesin dev:
-parsers 14/14, bridge 11/11, smoke/interact/ipc/soak: **PASS, 0 warning QML**.
+Ubuntu + PySide6 setiap push/PR, plus job `build-core` (CMake+Ninja+Qt6)
+untuk memastikan C++ ikut terkompilasi. Status terakhir di mesin dev:
+parsers 14/14, bridge 11/11, shader-conv PASS,
+smoke/interact/ipc/soak: **PASS, 0 warning QML**.
+
+> Workflow upstream Caelestia (`build`, `lint`, `check-format`, `release`,
+> `update-*`) sengaja di-`workflow_dispatch` karena butuh infra GHCR/nix
+> milik upstream — lihat komentar di tiap file. Jangan aktifkan sebelum
+> pohon referensi di-porting.
+
+---
+
+## 🗺️ Peta Integrasi (pohon Caelestia → vxvicfg)
+
+| Sumber referensi | Status | Jalur porting bila dibutuhkan |
+|------------------|--------|-------------------------------|
+| `modules/bar|dashboard|…/` | Pasif | Port per-modul ke Token `Theme`, ganti `import Caelestia/qs` → relatif, daftarkan di `modules/qmldir`, wajib lolos `smoke_qml.py` 0 warning |
+| `services/*.qml` | Pasif | Ganti singleton bertahap dengan `Vxvicfg.Core` C++ (API sudah sejajar: audio, net, notif, tray) |
+| `plugin/` (C++ Caelestia) | Pasif | Referensi arsitektur untuk `src/`; jangan campur dua plugin dalam satu engine |
+| `components/` | Pasif | Ambil pola (StyledSlider, StateLayer setara) bila dibutuhkan |
+| `nix/hm-module.nix` | Referensi | Contoh modul Home Manager (sudah ada versi aktif di `flake.nix`) |
 
 ---
 
@@ -276,11 +435,12 @@ parsers 14/14, bridge 11/11, smoke/interact/ipc/soak: **PASS, 0 warning QML**.
 | Fitur | Tool | Install (contoh Arch) |
 |-------|------|------------------------|
 | Telemetri NVIDIA | `nvidia-smi` | driver NVIDIA resmi |
-| Telemetri AMD | `amdgpu_top` / `rocm-smi` | `sudo pacman -S amdgpu_top` |
-| Kontrol media (MPRIS) | `playerctl` | `sudo pacman -S playerctl` |
-| Sinkron tema terminal | `pywal` / `matugen` | `pip install pywal` |
+| Media (MPRIS) | `playerctl` | `sudo pacman -S playerctl` |
+| Tema wallpaper | `swww`, `matugen-bin`, `mpvpaper` | `sudo pacman -S swww matugen-bin mpvpaper` |
 | Screenshot/record | `grim`, `slurp`, `wl-screenrec` / OBS | `sudo pacman -S grim slurp wl-screenrec` |
+| GameMode | `gamemode` | `sudo pacman -S gamemode` |
 | Update AUR | `yay` / `paru` | AUR helper pilihanmu |
+| Produksi Wayland | `quickshell-git`, `hyprland`, `pipewire`, `wireplumber` | `yay -S quickshell-git hyprland pipewire wireplumber` |
 
 ---
 
@@ -289,7 +449,7 @@ parsers 14/14, bridge 11/11, smoke/interact/ipc/soak: **PASS, 0 warning QML**.
 ```
 MIT License
 
-Copyright (c) 2026 Vaelestical Project
+Copyright (c) 2026 vxvicfg Project
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -320,10 +480,20 @@ SOFTWARE.
 4. Push (`git push origin feature/NamaFitur`)
 5. Buka Pull Request
 
-Aturan main: pertahankan gaya M3 Expressive (token dari `Theme.qml` —
-jangan hardcode warna/font/easing), tanpa blur/transparansi, QML murni
-tanpa plugin C++, dan pastikan `main.qml` lolos load tanpa warning
-sebelum PR.
+Aturan main (ditegakkan audit Tahap 3 + CI):
+
+- Gaya M3 Expressive dari token `Theme.qml` — jangan hardcode warna/font/easing;
+  modul baru memakai `OutCubic` (warna/lebar/opacity) dan `OutBack` (skala/tinggi).
+- Tanpa blur/transparansi; tanpa plugin C++ di jalur QML dev (`main.qml`
+  harus lolos load **0 warning** sebelum PR — jalankan `smoke_qml.py`).
+- Backend C++: dilarang blocking call di thread UI (`waitForFinished`,
+  DBus `.call()` sinkron) — selalu async + watchdog; sanitasi setiap
+  interpolasi shell; `QPointer`/parent untuk semua pointer lintas thread.
+- Shader/JS baru: uniform shader tidak boleh bernama reserved (cek via
+  `python tests/check_shader_conventions.py`); helper JS wajib
+  `.pragma library` + null-safe.
+- Jangan mengaktifkan workflow `workflow_dispatch` upstream sebelum
+  dependensinya di-porting.
 
 ---
 

@@ -5,7 +5,7 @@ __pycache__/
 .venv/
 venv/
 
-# File generated (bisa dibuat ulang via generate_preview.py)
+# File generated (mockup preview, tidak dilacak)
 ui_preview.png
 
 # Jejak runtime / IPC lokal

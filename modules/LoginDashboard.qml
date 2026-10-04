@@ -44,7 +44,7 @@ Item {
             }
             Text { text: "PRIVATE EASTJAVA"; color: Theme.onSurface; font: Theme.titleMedium;
                 Layout.alignment: Qt.AlignHCenter }
-            Text { text: "@kholis • VAELESTICAL OS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium;
+            Text { text: "@kholis • VXVICFG OS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium;
                 Layout.alignment: Qt.AlignHCenter }
             Text { id: loginClock; text: "--:--"; color: Theme.onSurface; font: Theme.displaySmall;
                 Layout.alignment: Qt.AlignHCenter }
@@ -104,7 +104,7 @@ Item {
             ComboBox {
                 Layout.fillWidth: true
                 font: Theme.labelMedium
-                model: ["Hyprland (Wayland)", "Vaelestical Shell Native"]
+                model: ["Hyprland (Wayland)", "vxvicfg Shell Native"]
             }
             RowLayout {
                 Layout.fillWidth: true

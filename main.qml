@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import "modules"
 
 // ============================================================
-// VAELESTICAL SHELL REV 2.0 — entry point (runnable di qmlscene)
+// VXVICFG SHELL REV 2.0 — entry point (runnable di qmlscene)
 // Bahasa desain: Material 3 Expressive penuh (token di Theme).
 // ============================================================
 ApplicationWindow {
@@ -12,7 +12,7 @@ ApplicationWindow {
     visible: true
     width: 1366
     height: 768
-    title: "Vaelestical Shell REV 2.0"
+    title: "vxvicfg shell REV 2.0"
     color: Theme.background
 
     // ---- global state ----
@@ -62,7 +62,7 @@ ApplicationWindow {
             anchors.leftMargin: 14
             anchors.rightMargin: 14
             spacing: 6
-            Text { text: "VAEL TEST"; color: Theme.onSurfaceVariant; font: Theme.labelSmall }
+            Text { text: "VXVI TEST"; color: Theme.onSurfaceVariant; font: Theme.labelSmall }
             Button { text: "Dash"; font: Theme.labelSmall; leftPadding: 8; rightPadding: 8; checkable: true; checked: true;
                 onToggled: dash.visible = checked }
             Button { text: "Control"; font: Theme.labelSmall; leftPadding: 8; rightPadding: 8; checkable: true; checked: false;
@@ -77,6 +77,12 @@ ApplicationWindow {
                 onToggled: gaming.visible = checked }
             Button { text: "Lock"; font: Theme.labelSmall; leftPadding: 8; rightPadding: 8; checkable: true; checked: false;
                 onToggled: login.visible = checked }
+            Button { text: "Flyout"; font: Theme.labelSmall; leftPadding: 8; rightPadding: 8; checkable: true; checked: false;
+                onToggled: flyout.visible = checked }
+            Button { text: "Pro"; font: Theme.labelSmall; leftPadding: 8; rightPadding: 8; checkable: true; checked: false;
+                onToggled: pro.visible = checked }
+            Button { text: "LScreen"; font: Theme.labelSmall; leftPadding: 8; rightPadding: 8; checkable: true; checked: false;
+                onToggled: lock2.visible = checked }
             ComboBox {
                 id: posBox
                 Layout.preferredWidth: 92
@@ -181,6 +187,90 @@ ApplicationWindow {
         z: 300
     }
 
+    // ---- Module E2: utilities flyout ----
+    UtilitiesFlyout {
+        id: flyout
+        objectName: "flyoutPanel"
+        anchors.centerIn: parent
+        visible: false
+        z: 200
+    }
+
+    // ---- Module F2: pro gaming overlay ----
+    ProGamingOverlay {
+        id: pro
+        objectName: "proPanel"
+        anchors.centerIn: parent
+        visible: false
+        z: 200
+    }
+
+    // ---- Module IV2: lockscreen alternatif ----
+    Lockscreen {
+        id: lock2
+        objectName: "lockscreenPanel"
+        anchors.fill: parent
+        visible: false
+        z: 290
+    }
+
+    // ---- HAKU: bottom taskbar (visible default) ----
+    HakuTaskbar {
+        id: hakuBar
+        objectName: "hakuTaskbar"
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 44
+        anchors.horizontalCenter: parent.horizontalCenter
+        z: 120
+    }
+
+    // ---- HAKU: settings modal ----
+    HakuSettings {
+        id: hakuSettings
+        objectName: "hakuSettingsPanel"
+        anchors.centerIn: parent
+        visible: false
+        z: 210
+    }
+
+    // ---- HAKU: desktop clock ----
+    HakuClock {
+        id: hakuClock
+        objectName: "hakuClockPanel"
+        anchors.centerIn: parent
+        visible: false
+        z: 90
+    }
+
+    // ---- HAKU: cava strip ----
+    HakuCava {
+        id: hakuCava
+        objectName: "hakuCavaPanel"
+        anchors.top: testBar.bottom
+        anchors.topMargin: 8
+        anchors.horizontalCenter: parent.horizontalCenter
+        visible: false
+        z: 90
+    }
+
+    // ---- HAKU: wallpaper grid ----
+    HakuWallpaper {
+        id: hakuWall
+        objectName: "hakuWallPanel"
+        anchors.centerIn: parent
+        visible: false
+        z: 210
+    }
+
+    // ---- HAKU: context menu ----
+    HakuMenu {
+        id: hakuMenu
+        objectName: "hakuMenuPanel"
+        anchors.centerIn: parent
+        visible: false
+        z: 220
+    }
+
     // ---- status bar (solid pill) ----
     Rectangle {
         id: statusBar
@@ -213,6 +303,15 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+S"; onActivated: settings.visible = !settings.visible }
     Shortcut { sequence: "Ctrl+U"; onActivated: utils.visible = !utils.visible }
     Shortcut { sequence: "Ctrl+G"; onActivated: gaming.visible = !gaming.visible }
+    Shortcut { sequence: "Ctrl+O"; onActivated: flyout.visible = !flyout.visible }
+    Shortcut { sequence: "Ctrl+P"; onActivated: pro.visible = !pro.visible }
+    Shortcut { sequence: "Ctrl+Shift+L"; onActivated: lock2.visible = !lock2.visible }
+    Shortcut { sequence: "Ctrl+T"; onActivated: hakuBar.visible = !hakuBar.visible }
+    Shortcut { sequence: "Ctrl+H"; onActivated: hakuSettings.visible = !hakuSettings.visible }
+    Shortcut { sequence: "Ctrl+N"; onActivated: hakuWall.visible = !hakuWall.visible }
+    Shortcut { sequence: "Ctrl+V"; onActivated: hakuCava.visible = !hakuCava.visible }
+    Shortcut { sequence: "Ctrl+M"; onActivated: hakuMenu.visible = !hakuMenu.visible }
+    Shortcut { sequence: "Ctrl+B"; onActivated: hakuClock.visible = !hakuClock.visible }
 
     // ---- polling telemetri via SysBridge (aktif bila via run_shell.py) ----
     // Aman di qmlscene: sysObj null → Connections inert, tanpa warning.
@@ -230,12 +329,12 @@ ApplicationWindow {
     }
 
     // ---- IPC Hyprland: perintah Super-key dibaca dari file antrian ----
-    // hyprland/vaelestical-binds.conf menulis kata perintah ke file ini
+    // hyprland/vxvicfg-binds.conf menulis kata perintah ke file ini
     // (satu baris per keypress). Timer membaca tiap 250ms dan hanya
     // memproses baris yang belum terlihat. File boleh tidak ada.
     property string cmdFile: Qt.platform.os === "windows"
-        ? "file:///C:/Temp/vaelestical.cmd"
-        : "file:///tmp/vaelestical.cmd"
+        ? "file:///C:/Temp/vxvicfg.cmd"
+        : "file:///tmp/vxvicfg.cmd"
 
     function handleCommand(cmd) {
         if (cmd === "dash") dash.visible = !dash.visible
@@ -245,6 +344,15 @@ ApplicationWindow {
         else if (cmd === "utils") utils.visible = !utils.visible
         else if (cmd === "gaming") gaming.visible = !gaming.visible
         else if (cmd === "lock") login.visible = !login.visible
+        else if (cmd === "flyout") flyout.visible = !flyout.visible
+        else if (cmd === "pro") pro.visible = !pro.visible
+        else if (cmd === "lock2") lock2.visible = !lock2.visible
+        else if (cmd === "taskbar") hakuBar.visible = !hakuBar.visible
+        else if (cmd === "hakusettings") hakuSettings.visible = !hakuSettings.visible
+        else if (cmd === "hakuwall") hakuWall.visible = !hakuWall.visible
+        else if (cmd === "cava") hakuCava.visible = !hakuCava.visible
+        else if (cmd === "hakumenu") hakuMenu.visible = !hakuMenu.visible
+        else if (cmd === "hakuclock") hakuClock.visible = !hakuClock.visible
         else if (cmd === "theme") root.lightMode = !root.lightMode
         else if (cmd !== "") console.log("perintah IPC tak dikenal:", cmd)
     }

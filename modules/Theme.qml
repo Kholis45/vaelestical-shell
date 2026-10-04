@@ -85,7 +85,7 @@ QtObject {
     property color _inverseOnSurfaceL: "#f4eff4"
     property color _inversePrimaryL: "#d0bcff"
 
-    // Aksen khas Vaelestical (di luar baseline M3, konsisten dua mode)
+    // Aksen khas vxvicfg (di luar baseline M3, konsisten dua mode)
     property color _accentD: "#a8c7fa"
     property color _accentL: "#415f91"
     property color _successD: "#4ade80"
@@ -134,6 +134,24 @@ QtObject {
     property color inactive: outlineVariant
     property color success: dark ? _successD : _successL
     property color warning: dark ? _warningD : _warningL
+
+    // ============ ALIAS SOLID VXVICFG (audit Tahap 3) ============
+    // Token solid untuk konsumen yang memakai palet tetap (layer-shell,
+    // OSD, HUD): tanpa blur/transparansi, geometri pill r18-32.
+    property color baseWindow: "#0d0e12"
+    property color surfaceContainerBase: "#1a1b22"
+    property color surfaceHigh: "#262732"
+    property color borderColor: "#333545"
+    property color accentPrimary: "#a8c7fa"
+    property color activeFill: "#384661"
+    property color textPrimary: "#e3e2e6"
+    property color textSecondary: "#8e9099"
+    // Durasi gerak pegas standar (ms): OutCubic warna/lebar/opacity,
+    // OutBack skala/tinggi.
+    property int dColor: 180
+    property int dScale: 150
+    property int dOpacity: 200
+    property int dResize: 220
 
     // State layer M3: overlay onSurface (hover 8%, focus/press 12%)
     property color stateLayer: onSurface

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../utils/ColorUtils.js" as C
 
 // MODULE V: Settings & system readout hub (M3E penuh, demo lokal).
 Item {
@@ -33,7 +34,7 @@ Item {
             width: root.width - 28
             spacing: 10
 
-            Text { text: "Vaelestical Settings"; color: Theme.onSurface; font: Theme.titleMedium }
+            Text { text: "vxvicfg Settings"; color: Theme.onSurface; font: Theme.titleMedium }
 
             Rectangle {
                 Layout.fillWidth: true
@@ -83,7 +84,7 @@ Item {
                         Layout.fillWidth: true
                         TextField { id: accentField; Layout.fillWidth: true; font: Theme.bodyMedium; placeholderText: "#a8c7fa"; text: "#a8c7fa" }
                         Rectangle { width: 28; height: 28; radius: Theme.pillRadius;
-                            color: accentField.text.match(/^#[0-9a-fA-F]{6}$/) ? accentField.text : Theme.accent }
+                            color: C.isHex(accentField.text) ? accentField.text : Theme.accent }
                     }
                     RowLayout {
                         Layout.fillWidth: true
@@ -138,8 +139,8 @@ Item {
                     anchors.fill: parent
                     anchors.margins: 12
                     spacing: 8
-                    Text { text: "Tentang Vaelestical"; color: Theme.onSurface; font: Theme.titleSmall }
-                    Text { text: "VAELESTICAL.REV Shell v2.0 Ultimate • PRIVATE EASTJAVA"; color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                    Text { text: "Tentang vxvicfg"; color: Theme.onSurface; font: Theme.titleSmall }
+                    Text { text: "VXVICFG.REV Shell v2.0 Ultimate • PRIVATE EASTJAVA"; color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     Text { text: "Kernel 6.6.15-1 • CachyOS • CPU i7 • RAM 16GB • GPU: fallback VM"; color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     RowLayout {
                         Layout.fillWidth: true

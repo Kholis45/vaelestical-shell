@@ -139,7 +139,7 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         ComboBox { font: Theme.labelMedium; model: ["Dwindle", "Master", "Floating"] }
-                        Button { text: "Screenshot"; font: Theme.labelMedium; onClicked: Theme.exec("sh", ["-c", 'grim -g "$(slurp)" ~/Pictures/vaelestical-$(date +%s).png']) }
+                        Button { text: "Screenshot"; font: Theme.labelMedium; onClicked: Theme.exec("sh", ["-c", 'grim -g "$(slurp)" ~/Pictures/vxvicfg-$(date +%s).png']) }
                     }
                 }
             }
