@@ -8,6 +8,27 @@ Item {
     width: 680
     height: 620
 
+    // Riwayat clipboard: cliphist asli bila ada, contoh bila tidak.
+    property var clipItems: ["sudo pacman -Syu", "ssh kholis@server", "catatan: beli kopi", "https://contoh.id", "echo hello"]
+    function refreshClip() {
+        if (!Theme.hasBin("cliphist"))
+            return
+        var raw = Theme.execSync("cliphist", ["list"])
+        if (raw === "")
+            return
+        var arr = []
+        var lines = raw.split("\n")
+        for (var i = 0; i < lines.length && arr.length < 10; i++) {
+            var t = lines[i].replace(/^\d+\s+/, "").trim().slice(0, 80)
+            if (t !== "")
+                arr.push(t)
+        }
+        if (arr.length > 0)
+            root.clipItems = arr
+    }
+    onVisibleChanged: if (visible) refreshClip()
+    Component.onCompleted: refreshClip()
+
     Rectangle {
         anchors.fill: parent
         anchors.topMargin: 3
@@ -47,7 +68,7 @@ Item {
                     ListView {
                         Layout.fillWidth: true; Layout.fillHeight: true
                         clip: true
-                        model: ["sudo pacman -Syu", "ssh kholis@server", "catatan: beli kopi", "https://contoh.id", "echo hello"]
+                        model: root.clipItems
                         delegate: Text {
                             required property var modelData
                             width: ListView.view.width
@@ -138,7 +159,11 @@ Item {
                     TextArea { Layout.fillWidth: true; Layout.preferredHeight: 60; font: Theme.bodyMedium; placeholderText: "Catatan cepat (auto-save demo)…" }
                     RowLayout {
                         Layout.fillWidth: true
-                        ComboBox { font: Theme.labelMedium; model: ["Dwindle", "Master", "Floating"] }
+                        ComboBox {
+                            font: Theme.labelMedium
+                            model: ["Dwindle", "Master", "Floating"]
+                            onActivated: Theme.exec("hyprctl", ["keyword", "general:layout", currentText.toLowerCase()])
+                        }
                         Button { text: "Screenshot"; font: Theme.labelMedium; onClicked: Theme.exec("sh", ["-c", 'grim -g "$(slurp)" ~/Pictures/vxvicfg-$(date +%s).png']) }
                     }
                 }
@@ -173,6 +198,21 @@ Item {
                         Layout.fillWidth: true
                         Text { text: "Tray: Discord Steam OBS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.fillWidth: true }
                         Button { text: "Daya…"; font: Theme.labelMedium; onClicked: powerDlg.open() }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Native tray (butuh libvxvicfg_core)"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.fillWidth: true }
+                        Switch {
+                            id: nativeTraySw
+                            font: Theme.labelMedium
+                            onToggled: trayLoader.active = checked
+                        }
+                    }
+                    Loader {
+                        id: trayLoader
+                        Layout.fillWidth: true
+                        active: false
+                        source: "TrayBridge.qml"
                     }
                 }
             }

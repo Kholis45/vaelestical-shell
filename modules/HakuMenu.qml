@@ -18,6 +18,10 @@ Item {
         root.visible = true
     }
 
+    function cmdPath() {
+        return Qt.platform.os === "windows" ? "C:/Temp/vxvicfg.cmd" : "/tmp/vxvicfg.cmd"
+    }
+
     Rectangle {
         anchors.fill: parent
         anchors.topMargin: 3
@@ -111,6 +115,33 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {
+                            var L = modelData.label
+                            if (L === "Change Theme") {
+                                Theme.dark = !Theme.dark
+                                return
+                            }
+                            if (L === "Taskbar" || L === "Change Wallpaper" || L === "Settings") {
+                                if (!isAct && !isSub)
+                                    isOn = !isOn
+                                var cmd = L === "Taskbar" ? "taskbar" : (L === "Change Wallpaper" ? "hakuwall" : "hakusettings")
+                                Theme.exec("sh", ["-c", "echo " + cmd + " >> " + root.cmdPath()])
+                                return
+                            }
+                            if (L === "Random Wallpaper") {
+                                isOn = !isOn
+                                Theme.exec("sh", ["-c", "W=$(ls ~/Pictures/Wallpapers/*.{jpg,png,webp} 2>/dev/null | shuf -n1); [ -n \"$W\" ] && (swww img \"$W\" 2>/dev/null || swaybg -i \"$W\" &); true"])
+                                return
+                            }
+                            if (L === "Cava Underbar") {
+                                isOn = !isOn
+                                Theme.exec("sh", ["-c", isOn ? "pgrep -x cava >/dev/null || (cava &)" : "pkill -x cava 2>/dev/null; true"])
+                                return
+                            }
+                            if (L === "Rounded Screen") {
+                                isOn = !isOn
+                                Theme.exec("hyprctl", ["keyword", "decoration:rounding", isOn ? "16" : "0"])
+                                return
+                            }
                             if (!isAct && !isSub)
                                 isOn = !isOn
                             if (modelData.c !== undefined && modelData.c.length > 0)
@@ -167,7 +198,7 @@ Item {
                 radius: 8
                 color: "transparent"
                 Text { anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 10; text: "Settings"; color: Theme.onSurface; font.family: "monospace"; font.pixelSize: 12 }
-                MouseArea { anchors.fill: parent; onClicked: console.log("settings requested") }
+                MouseArea { anchors.fill: parent; onClicked: Theme.exec("sh", ["-c", "echo hakusettings >> " + root.cmdPath()]) }
             }
         }
     }

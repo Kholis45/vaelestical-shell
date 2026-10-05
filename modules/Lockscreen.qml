@@ -47,9 +47,17 @@ Item {
                 color: Theme.primaryContainer
                 border.color: Theme.accent; border.width: 2
                 Text { anchors.centerIn: parent; text: "V"; color: Theme.accent; font: Theme.headlineSmall }
+                Image {
+                    id: lockAvatar
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    visible: status === Image.Ready
+                }
             }
             Text { text: "PRIVATE EASTJAVA"; color: Theme.onSurface; font: Theme.titleMedium; Layout.alignment: Qt.AlignHCenter }
-            Text { text: "@kholis • VXVICFG OS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.alignment: Qt.AlignHCenter }
+            Text { id: lockHandle; text: "@kholis • VXVICFG OS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.alignment: Qt.AlignHCenter }
             Text { id: lockClock; text: "--:--"; color: Theme.onSurface; font: Theme.displaySmall; Layout.alignment: Qt.AlignHCenter }
             Text { id: lockDate; text: ""; color: Theme.onSurfaceVariant; font: Theme.bodyMedium; Layout.alignment: Qt.AlignHCenter }
 
@@ -127,5 +135,18 @@ Item {
             lockClock.text = F.formatClock(d)
             lockDate.text = d.toDateString()
         }
+    }
+
+    // Identitas asli sistem (no-op aman tanpa backend).
+    Component.onCompleted: {
+        var u = Theme.execSync("whoami").trim()
+        if (u !== "") {
+            lockUser.text = u
+            var h = Theme.readText("/etc/hostname").trim()
+            lockHandle.text = "@" + u + " • " + (h !== "" ? h : "VXVICFG OS")
+        }
+        var home = Theme.execSync("sh", ["-c", "echo $HOME"]).trim()
+        if (home !== "" && Theme.execSync("sh", ["-c", "test -f \"" + home + "/.face\" && echo ok"]).trim() === "ok")
+            lockAvatar.source = "file://" + home + "/.face"
     }
 }

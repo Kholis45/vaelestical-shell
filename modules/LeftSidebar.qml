@@ -8,6 +8,7 @@ Item {
     property string barPosition: "left" // top | bottom | left | right
     property real cornerRadius: Theme.cardRadius
     property int currentWorkspace: 1
+    property bool powerOpen: false
     property bool isVertical: barPosition === "left" || barPosition === "right"
 
     width: isVertical ? 76 : 560
@@ -85,10 +86,10 @@ Item {
             rowSpacing: 6
             Repeater {
                 model: [
-                    { t: "WiFi", tip: "Wi-Fi" },
-                    { t: "BT", tip: "Bluetooth" },
-                    { t: "VOL", tip: "Audio" },
-                    { t: "PWR", tip: "Power" }
+                    { t: "WiFi", tip: "Wi-Fi", c: ["nmcli", "radio", "wifi", "toggle"] },
+                    { t: "BT", tip: "Bluetooth", c: ["bluetoothctl", "power", "toggle"] },
+                    { t: "VOL", tip: "Audio", c: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"] },
+                    { t: "PWR", tip: "Power", c: [] }
                 ]
                 delegate: Rectangle {
                     required property var modelData
@@ -106,7 +107,16 @@ Item {
                         NumberAnimation { duration: Theme.motionShort3; easing.type: Easing.Bezier; easing.bezierCurve: Theme.emphasized }
                     }
                     MouseArea { id: mh; anchors.fill: parent; hoverEnabled: true;
-                        onClicked: console.log("status:", modelData.tip) }
+                        onClicked: {
+                            if (modelData.tip === "Power") {
+                                root.powerOpen = !root.powerOpen
+                                return
+                            }
+                            if (modelData.c !== undefined && modelData.c.length > 0)
+                                Theme.exec(modelData.c[0], modelData.c.slice(1))
+                            else
+                                console.log("status:", modelData.tip)
+                        } }
                     StateLayer { anchors.fill: parent; cornerRadius: Theme.pillRadius; hoverSource: mh }
                 }
             }
@@ -116,7 +126,32 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             spacing: 6
             Button { text: "Lock"; font: Theme.labelSmall; Layout.preferredWidth: 56; onClicked: Theme.exec("loginctl", ["lock-session"]) }
-            Button { text: "Off"; font: Theme.labelSmall; Layout.preferredWidth: 56; onClicked: console.log("power menu requested") }
+            Button { text: "Off"; font: Theme.labelSmall; Layout.preferredWidth: 56; onClicked: root.powerOpen = !root.powerOpen }
+        }
+
+        // Menu sesi daya (Lock/Sleep/Reboot/Shutdown).
+        ColumnLayout {
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 4
+            visible: root.powerOpen
+            Repeater {
+                model: [
+                    { t: "Lock", c: ["loginctl", "lock-session"] },
+                    { t: "Sleep", c: ["systemctl", "suspend"] },
+                    { t: "Reboot", c: ["systemctl", "reboot"] },
+                    { t: "Off", c: ["systemctl", "poweroff"] }
+                ]
+                delegate: Button {
+                    required property var modelData
+                    text: modelData.t
+                    font: Theme.labelSmall
+                    Layout.preferredWidth: 64
+                    onClicked: {
+                        root.powerOpen = false
+                        Theme.exec(modelData.c[0], modelData.c.slice(1))
+                    }
+                }
+            }
         }
 
         // Breathing pulse status dot (solid)
@@ -169,7 +204,7 @@ Item {
         }
 
         Rectangle { width: 1; height: 36; color: Theme.outlineVariant }
-        Button { text: "Apps"; font: Theme.labelSmall; onClicked: console.log("launcher requested") }
+        Button { text: "Apps"; font: Theme.labelSmall; onClicked: Theme.exec("sh", ["-c", "rofi -show drun 2>/dev/null || wofi --show drun 2>/dev/null; true"]) }
         Button { text: "Lock"; font: Theme.labelSmall; onClicked: Theme.exec("loginctl", ["lock-session"]) }
         Rectangle {
             width: 10; height: 10; radius: Theme.pillRadius; color: Theme.success

@@ -76,7 +76,7 @@ Item {
                         }
                         Text { text: Math.round(osdBri.value) + "%"; color: Theme.onSurface; font: Theme.labelMedium; Layout.preferredWidth: 42 }
                     }
-                    Text { text: "CapsLock: OFF • NumLock: ON • Layout: ID"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
+                    Text { id: lockKeysText; text: "CapsLock: ? • NumLock: ? • Layout: ID"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                 }
             }
 
@@ -96,7 +96,13 @@ Item {
                         text: "Kirim toast uji"
                         font: Theme.labelLarge
                         Layout.fillWidth: true
-                        onClicked: { flyToast.visible = true; flyToastHide.restart() }
+                        onClicked: {
+                            // Hormati flag DND dari Control Center.
+                            var dnd = Theme.execSync("sh", ["-c", "cat ~/.cache/vxvicfg/dnd 2>/dev/null"]).trim()
+                            flyToastText.text = dnd === "1" ? "DND aktif — notifikasi ditahan." : "Halo dari vxvicfg shell."
+                            flyToast.visible = true
+                            flyToastHide.restart()
+                        }
                     }
                     Rectangle {
                         id: flyToast
@@ -105,7 +111,7 @@ Item {
                         radius: Theme.pillRadius
                         color: Theme.inverseSurface
                         visible: false
-                        Text { anchors.centerIn: parent; text: "Halo dari vxvicfg (DND: mati)"; color: Theme.inverseOnSurface; font: Theme.labelMedium }
+                        Text { id: flyToastText; anchors.centerIn: parent; text: "Halo dari vxvicfg shell."; color: Theme.inverseOnSurface; font: Theme.labelMedium }
                         Behavior on opacity {
                             NumberAnimation { duration: Theme.dOpacity; easing.type: Easing.OutQuad }
                         }
@@ -174,8 +180,13 @@ Item {
                             text: "Simpan"
                             font: Theme.labelMedium
                             onClicked: {
-                                Theme.exec("sh", ["-c", "mkdir -p ~/.cache/vxvicfg && date >> ~/.cache/vxvicfg/notes.log"])
-                                flySaved.text = "Tersimpan ~/.cache/vxvicfg/notes.log"
+                                try {
+                                    var b64 = Qt.btoa(unescape(encodeURIComponent(flyNotes.text)))
+                                    Theme.exec("sh", ["-c", "mkdir -p ~/.cache/vxvicfg && printf %s " + JSON.stringify(b64) + " | base64 -d > ~/.cache/vxvicfg/notes.txt"])
+                                    flySaved.text = "Tersimpan ~/.cache/vxvicfg/notes.txt"
+                                } catch (e) {
+                                    flySaved.text = "Gagal menyimpan."
+                                }
                             }
                         }
                         Button {
@@ -203,4 +214,24 @@ Item {
     }
 
     Timer { id: flyToastHide; interval: 3000; repeat: false; onTriggered: flyToast.visible = false }
+
+    // Status LED keyboard asli via sysfs (tetap "?" bila tak ada LED).
+    Timer {
+        interval: 2000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: {
+            if (!Theme.hasSys())
+                return
+            var caps = Theme.execSync("sh", ["-c", "cat /sys/class/leds/*capslock*/brightness 2>/dev/null | head -1"]).trim()
+            var num = Theme.execSync("sh", ["-c", "cat /sys/class/leds/*numlock*/brightness 2>/dev/null | head -1"]).trim()
+            lockKeysText.text = "CapsLock: " + (caps === "" ? "?" : (caps === "0" ? "OFF" : "ON"))
+                + " • NumLock: " + (num === "" ? "?" : (num === "0" ? "OFF" : "ON")) + " • Layout: ID"
+        }
+    }
+
+    // Muat catatan tersimpan (no-op aman tanpa backend: execSync → "").
+    Component.onCompleted: {
+        var t = Theme.execSync("sh", ["-c", "cat ~/.cache/vxvicfg/notes.txt 2>/dev/null"])
+        if (t !== "")
+            flyNotes.text = t
+    }
 }

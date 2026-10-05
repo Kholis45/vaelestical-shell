@@ -152,6 +152,8 @@ QtObject {
     property int dScale: 150
     property int dOpacity: 200
     property int dResize: 220
+    // Interval telemetri global (ms); slider SettingsHub/Haku mengubah ini.
+    property int telemetryMs: 3000
 
     // State layer M3: overlay onSurface (hover 8%, focus/press 12%)
     property color stateLayer: onSurface

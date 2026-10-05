@@ -197,7 +197,12 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             Text { text: "Poll interval"; color: Theme.onSurfaceVariant; font.family: "monospace"; font.pixelSize: 12; Layout.preferredWidth: 120 }
-                            Slider { id: hakuPoll; Layout.fillWidth: true; from: 1; to: 5; stepSize: 1; value: 2 }
+                            Slider {
+                                id: hakuPoll
+                                Layout.fillWidth: true
+                                from: 1; to: 5; stepSize: 1; value: 3
+                                onValueChanged: Theme.telemetryMs = Math.round(value) * 1000
+                            }
                             Text { text: hakuPoll.value + "s"; color: Theme.onSurface; font.family: "monospace"; font.pixelSize: 12 }
                         }
                         RowLayout {
@@ -258,6 +263,10 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked: {
+                    if (modelData.label === "Change Theme") {
+                        Theme.dark = !Theme.dark
+                        return
+                    }
                     if (!isAct)
                         isOn = !isOn
                     if (modelData.c !== undefined && modelData.c.length > 0)

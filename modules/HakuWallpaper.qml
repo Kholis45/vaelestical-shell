@@ -11,6 +11,20 @@ Item {
     height: 500
 
     property int currentIndex: 0
+    // Basis thumbnail asli (diisi probeWalls bila folder ada; fallback tint).
+    property string wallBase: ""
+    property string wallList: ""
+    function probeWalls() {
+        if (!Theme.hasSys())
+            return
+        var home = Theme.execSync("sh", ["-c", "echo $HOME"]).trim()
+        if (home === "")
+            return
+        root.wallBase = home + "/Pictures/Wallpapers"
+        root.wallList = Theme.execSync("sh", ["-c", "ls " + home + "/Pictures/Wallpapers 2>/dev/null"])
+    }
+    Component.onCompleted: probeWalls()
+    onVisibleChanged: if (visible) probeWalls()
 
     Rectangle {
         anchors.fill: parent
@@ -110,6 +124,13 @@ Item {
                             ColorAnimation { duration: Theme.dColor; easing.type: Easing.OutCubic }
                         }
                         Text { anchors.centerIn: parent; text: "◍"; color: Theme.onSurface; font.pixelSize: 30 }
+                        Image {
+                            anchors.fill: parent
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            source: root.wallList.indexOf(modelData.file) !== -1 ? "file://" + root.wallBase + "/" + modelData.file : ""
+                            visible: status === Image.Ready
+                        }
                         MouseArea {
                             id: wpMa
                             anchors.fill: parent

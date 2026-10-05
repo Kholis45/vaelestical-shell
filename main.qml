@@ -354,6 +354,16 @@ ApplicationWindow {
         else if (cmd === "hakumenu") hakuMenu.visible = !hakuMenu.visible
         else if (cmd === "hakuclock") hakuClock.visible = !hakuClock.visible
         else if (cmd === "theme") root.lightMode = !root.lightMode
+        else if (cmd === "shot") Theme.exec("sh", ["-c", 'grim -g "$(slurp)" ~/Pictures/vxvicfg-$(date +%s).png 2>/dev/null; true'])
+        else if (cmd.indexOf("barpos:") === 0) {
+            var pos = cmd.slice(7)
+            if (["left", "top", "bottom", "right"].indexOf(pos) !== -1)
+                root.barPosition = pos
+        }
+        else if (cmd.indexOf("gpu:") === 0) {
+            root.activeGpu = cmd.slice(4)
+            root.gpuDriverStatus = cmd.slice(4) + " (terpilih)"
+        }
         else if (cmd !== "") console.log("perintah IPC tak dikenal:", cmd)
     }
 

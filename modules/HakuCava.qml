@@ -11,6 +11,8 @@ Item {
 
     property string edge: "top" // top | bottom
     property int tick: 0
+    // Berdenyut hanya saat ada audio diputar (playerctl); default animasi.
+    property bool isPlaying: true
 
     RowLayout {
         anchors.centerIn: parent
@@ -34,7 +36,18 @@ Item {
     }
 
     Timer {
-        interval: 90; running: true; repeat: true
+        interval: 90; running: root.isPlaying; repeat: true
         onTriggered: root.tick++
+    }
+    // Status playback MPRIS (murah: 1x per 2 detik, diam tanpa playerctl).
+    Timer {
+        interval: 2000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: {
+            if (!Theme.hasBin("playerctl"))
+                return
+            var s = Theme.execSync("playerctl", ["status"])
+            if (s !== "")
+                root.isPlaying = (s.trim() === "Playing")
+        }
     }
 }

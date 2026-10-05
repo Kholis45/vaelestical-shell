@@ -41,10 +41,18 @@ Item {
                 color: Theme.primaryContainer
                 border.color: Theme.accent; border.width: 2
                 Text { anchors.centerIn: parent; text: "KE"; color: Theme.accent; font: Theme.headlineSmall }
+                Image {
+                    id: avatarImg
+                    anchors.fill: parent
+                    anchors.margins: 3
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    visible: status === Image.Ready
+                }
             }
             Text { text: "PRIVATE EASTJAVA"; color: Theme.onSurface; font: Theme.titleMedium;
                 Layout.alignment: Qt.AlignHCenter }
-            Text { text: "@kholis • VXVICFG OS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium;
+            Text { id: handleText; text: "@kholis • VXVICFG OS"; color: Theme.onSurfaceVariant; font: Theme.labelMedium;
                 Layout.alignment: Qt.AlignHCenter }
             Text { id: loginClock; text: "--:--"; color: Theme.onSurface; font: Theme.displaySmall;
                 Layout.alignment: Qt.AlignHCenter }
@@ -88,6 +96,18 @@ Item {
                             errText.text = "Password salah — coba lagi."
                             errText.color = Theme.error
                             shake.start()
+                        } else if (Theme.hasBin("pamtester") && Theme.hasSys()) {
+                            // Auth PAM asli (butuh paket pamtester).
+                            var out = Theme.execSync("sh", ["-c", "pamtester login '" + userField.text.replace(/'/g, "") + "' authenticate 2>&1"])
+                            if (out.toLowerCase().indexOf("success") >= 0) {
+                                errText.text = ""
+                                passField.text = ""
+                                root.visible = false
+                            } else {
+                                errText.text = "Autentikasi gagal — coba lagi."
+                                errText.color = Theme.error
+                                shake.start()
+                            }
                         } else {
                             errText.text = ""
                             busy.running = true
@@ -125,6 +145,19 @@ Item {
     Timer {
         id: okTimer; interval: 1200; repeat: false
         onTriggered: { busy.running = false; errText.text = "Login demo berhasil."; errText.color = Theme.success }
+    }
+
+    // Identitas asli sistem (no-op aman tanpa backend).
+    Component.onCompleted: {
+        var u = Theme.execSync("whoami").trim()
+        if (u !== "") {
+            userField.text = u
+            var h = Theme.readText("/etc/hostname").trim()
+            handleText.text = "@" + u + " • " + (h !== "" ? h : "VXVICFG OS")
+        }
+        var home = Theme.execSync("sh", ["-c", "echo $HOME"]).trim()
+        if (home !== "" && Theme.execSync("sh", ["-c", "test -f \"" + home + "/.face\" && echo ok"]).trim() === "ok")
+            avatarImg.source = "file://" + home + "/.face"
     }
 
     Dialog {

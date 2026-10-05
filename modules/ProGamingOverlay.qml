@@ -15,7 +15,8 @@ Item {
     property string eqPreset: "Flat"
     property string aurText: "…"
     property string netText: "mengukur…"
-    property string danteText: "2.1 ms • loss 0.0%"
+    property string danteText: "mengukur…"
+    property string danteTarget: "192.168.1.50"
 
     Rectangle {
         anchors.fill: parent
@@ -58,7 +59,7 @@ Item {
                         checked: root.hudOn
                         onToggled: {
                             root.hudOn = checked
-                            Theme.exec("sh", ["-c", checked ? "echo MANGOHUD=1 >> ~/.cache/vxvicfg/hud" : "pkill -f mangohud; true"])
+                            Theme.exec("sh", ["-c", checked ? "mkdir -p ~/.cache/vxvicfg && echo MANGOHUD=1 > ~/.cache/vxvicfg/hud" : "rm -f ~/.cache/vxvicfg/hud; pkill -f mangohud 2>/dev/null; true"])
                         }
                     }
                 }
@@ -96,7 +97,16 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         Text { text: "Kipas"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.preferredWidth: 44 }
-                        Slider { id: fanSlider; Layout.fillWidth: true; from: 20; to: 100; value: 46 }
+                        Slider {
+                            id: fanSlider
+                            Layout.fillWidth: true
+                            from: 20; to: 100; value: 46
+                            // Terapkan saat dilepas (best-effort via nvidia-settings).
+                            onPressedChanged: {
+                                if (!pressed && Theme.hasBin("nvidia-settings"))
+                                    Theme.exec("nvidia-settings", ["-a", "[gpu:0]/GPUFanControlState=1", "-a", "[fan:0]/GPUTargetFanSpeed=" + Math.round(value)])
+                            }
+                        }
                         Text { text: Math.round(fanSlider.value) + "%"; color: Theme.onSurface; font: Theme.labelMedium; Layout.preferredWidth: 42 }
                     }
                 }
@@ -132,7 +142,7 @@ Item {
                         }
                     }
                     Text { text: "Dante: " + root.danteText; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
-                    Text { text: "Bufer 4 ms • target 192.168.1.50"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
+                    Text { text: "Bufer 4 ms • target " + root.danteTarget; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                 }
             }
 
@@ -149,6 +159,7 @@ Item {
                     Text { text: "Sistem"; color: Theme.onSurface; font: Theme.titleSmall }
                     Text { text: "AUR: " + root.aurText; color: Theme.onSurface; font: Theme.bodyMedium }
                     Text { text: "Net: " + root.netText; color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                    Text { id: contText; text: "Containers/VM: —"; color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     RowLayout {
                         Layout.fillWidth: true
                         Button { text: "Upgrade AUR"; font: Theme.labelMedium; onClicked: Theme.exec("sh", ["-c", "kitty yay -Syu &"]) }
@@ -182,6 +193,27 @@ Item {
                 if (n !== "")
                     root.netText = n.trim()
             }
+            // Monitor rute Dante: latensi + loss nyata ke target via ping.
+            if (Theme.hasBin("ping")) {
+                var dp = Theme.execSync("sh", ["-c", "ping -c3 -W1 " + root.danteTarget + " 2>/dev/null | grep -E 'packet loss|rtt'"])
+                if (dp !== "") {
+                    var loss = dp.match(/([0-9]+)% packet loss/)
+                    var rtt = dp.match(/=\s*[0-9.]+\/([0-9.]+)\//)
+                    if (loss)
+                        root.danteText = (rtt ? rtt[1] + " ms" : "?") + " • loss " + loss[1] + "%"
+                } else {
+                    root.danteText = "target tak terjangkau"
+                }
+            }
+            var c = ""
+            if (Theme.hasBin("podman"))
+                c += Theme.execSync("sh", ["-c", "podman ps --format '{{.Names}} ({{.Status}})' 2>/dev/null | head -3"])
+            if (Theme.hasBin("virsh")) {
+                var v = Theme.execSync("sh", ["-c", "virsh list --name 2>/dev/null | head -3"])
+                if (v !== "")
+                    c += (c !== "" ? "\n" : "") + v.trim()
+            }
+            contText.text = "Containers/VM: " + (c !== "" ? c.split("\n").join(" • ") : "—")
         }
     }
 }

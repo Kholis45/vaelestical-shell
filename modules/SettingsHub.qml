@@ -9,6 +9,26 @@ Item {
     width: 560
     height: 640
 
+    // Preferensi persisten (JSON di ~/.cache/vxvicfg/prefs.json).
+    function savePrefs() {
+        var p = JSON.stringify({ island: swIsland.checked, lyrics: swLyrics.checked,
+                                 games: swGames.checked, osd: swOsd.checked })
+        Theme.exec("sh", ["-c", "mkdir -p ~/.cache/vxvicfg && printf %s " + JSON.stringify(p) + " > ~/.cache/vxvicfg/prefs.json"])
+    }
+    function loadPrefs() {
+        try {
+            var raw = Theme.execSync("sh", ["-c", "cat ~/.cache/vxvicfg/prefs.json 2>/dev/null"])
+            if (raw === "")
+                return
+            var p = JSON.parse(raw)
+            if (p.island !== undefined) swIsland.checked = p.island
+            if (p.lyrics !== undefined) swLyrics.checked = p.lyrics
+            if (p.games !== undefined) swGames.checked = p.games
+            if (p.osd !== undefined) swOsd.checked = p.osd
+        } catch (e) {}
+    }
+    Component.onCompleted: loadPrefs()
+
     Rectangle {
         anchors.fill: parent
         anchors.topMargin: 3
@@ -51,7 +71,8 @@ Item {
                         Layout.fillWidth: true
                         Text { text: "Bar:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium }
                         ComboBox { id: posBox; Layout.fillWidth: true; font: Theme.labelMedium;
-                            model: ["left", "top", "bottom", "right"] }
+                            model: ["left", "top", "bottom", "right"]
+                            onActivated: Theme.exec("sh", ["-c", "echo 'barpos:" + currentText + "' >> " + (Qt.platform.os === "windows" ? "C:/Temp/vxvicfg.cmd" : "/tmp/vxvicfg.cmd")]) }
                     }
                     RowLayout {
                         Layout.fillWidth: true
@@ -110,21 +131,85 @@ Item {
                         Layout.fillWidth: true
                         Text { text: "GPU:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.preferredWidth: 60 }
                         ComboBox { Layout.fillWidth: true; font: Theme.labelMedium;
-                            model: ["NVIDIA", "AMD Radeon", "iGPU / APU", "VMware SVGA 3D"] }
+                            model: ["NVIDIA", "AMD Radeon", "iGPU / APU", "VMware SVGA 3D"]
+                            onActivated: Theme.exec("sh", ["-c", "echo 'gpu:" + currentText + "' >> " + (Qt.platform.os === "windows" ? "C:/Temp/vxvicfg.cmd" : "/tmp/vxvicfg.cmd")]) }
                     }
                     RowLayout {
                         Layout.fillWidth: true
                         Text { text: "Poll:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.preferredWidth: 60 }
-                        Slider { id: pollSlider; Layout.fillWidth: true; from: 1; to: 5; stepSize: 1; value: 1 }
+                        Slider {
+                            id: pollSlider
+                            Layout.fillWidth: true
+                            from: 1; to: 5; stepSize: 1; value: 3
+                            onValueChanged: Theme.telemetryMs = Math.round(value) * 1000
+                        }
                         Text { text: pollSlider.value + "s"; color: Theme.onSurface; font: Theme.labelMedium }
                     }
                     GridLayout {
                         columns: 2
                         Layout.fillWidth: true
-                        Switch { text: "Dynamic Island"; font: Theme.labelMedium; checked: true }
-                        Switch { text: "Lirik tersinkron"; font: Theme.labelMedium; checked: true }
-                        Switch { text: "Game launcher"; font: Theme.labelMedium; checked: true }
-                        Switch { text: "OSD pills"; font: Theme.labelMedium; checked: true }
+                        Switch { id: swIsland; text: "Dynamic Island"; font: Theme.labelMedium; checked: true; onToggled: root.savePrefs() }
+                        Switch { id: swLyrics; text: "Lirik tersinkron"; font: Theme.labelMedium; checked: true; onToggled: root.savePrefs() }
+                        Switch { id: swGames; text: "Game launcher"; font: Theme.labelMedium; checked: true; onToggled: root.savePrefs() }
+                        Switch { id: swOsd; text: "OSD pills"; font: Theme.labelMedium; checked: true; onToggled: root.savePrefs() }
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                radius: Theme.cardRadius
+                color: Theme.surfaceContainer
+                border.color: Theme.outlineVariant
+                border.width: 1
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 8
+                    Text { text: "Kompositor Hyprland"; color: Theme.onSurface; font: Theme.titleSmall }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Gaps:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.preferredWidth: 70 }
+                        Slider {
+                            Layout.fillWidth: true
+                            from: 0; to: 30; value: 8
+                            onPressedChanged: {
+                                if (!pressed) {
+                                    Theme.exec("hyprctl", ["keyword", "general:gaps_in", String(Math.round(value))])
+                                    Theme.exec("hyprctl", ["keyword", "general:gaps_out", String(Math.round(value * 2))])
+                                }
+                            }
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Rounding:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.preferredWidth: 70 }
+                        Slider {
+                            Layout.fillWidth: true
+                            from: 0; to: 30; value: 16
+                            onPressedChanged: {
+                                if (!pressed)
+                                    Theme.exec("hyprctl", ["keyword", "decoration:rounding", String(Math.round(value))])
+                            }
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Blur:"; color: Theme.onSurfaceVariant; font: Theme.labelMedium; Layout.preferredWidth: 70 }
+                        Slider {
+                            Layout.fillWidth: true
+                            from: 0; to: 12; value: 6
+                            onPressedChanged: {
+                                if (!pressed)
+                                    Theme.exec("hyprctl", ["keyword", "decoration:blur:size", String(Math.round(value))])
+                            }
+                        }
+                        Switch {
+                            text: "On"
+                            font: Theme.labelMedium
+                            checked: true
+                            onToggled: Theme.exec("hyprctl", ["keyword", "decoration:blur:enabled", checked ? "true" : "false"])
+                        }
                     }
                 }
             }
@@ -148,7 +233,7 @@ Item {
                         Button { text: "Reload shell"; font: Theme.labelMedium; onClicked: updText.text = "Shell reload (demo)." }
                     }
                     Text { id: updText; text: ""; color: Theme.onSurface; font: Theme.labelMedium }
-                    Text { text: "Catatan: posisi bar global diatur dari test-bar utama. Pilihan di sini hanya preview lokal: " + posBox.currentText;
+                    Text { text: "Posisi diterapkan global via IPC (lihat juga test-bar utama): " + posBox.currentText;
                         color: Theme.onSurfaceVariant; font: Theme.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                 }
             }

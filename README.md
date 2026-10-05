@@ -181,6 +181,7 @@ source = ~/vxvicfg-shell/hyprland/vxvicfg-binds.conf
 | `Super+U` | toggle utilities |
 | `Super+G` | toggle gaming |
 | `Super+L` | toggle lockscreen |
+| `Super+P` | screenshot area langsung (`grim`+`slurp`) |
 | `Super+T` | toggle Haku taskbar |
 | `Super+H` | toggle Haku settings modal |
 | `Super+N` | toggle Haku wallpaper grid |
@@ -192,7 +193,9 @@ source = ~/vxvicfg-shell/hyprland/vxvicfg-binds.conf
 **2. Cara kerja (IPC file-based, QML murni):** tiap bind menulis satu kata
 ke `/tmp/vxvicfg.cmd`; shell membaca file itu tiap 250ms dan toggle
 panel yang sesuai (`dash wall control settings utils gaming lock theme
-flyout pro lock2 taskbar hakusettings hakuwall cava hakumenu hakuclock`
+flyout pro lock2 taskbar hakusettings hakuwall cava hakumenu hakuclock shot`
+(+ internal `barpos:left|top|bottom|right` untuk posisi bar, dipakai
+SettingsHub; tidak perlu bind)
 via `handleCommand()` di `main.qml`). Tanpa shell yang
 jalan, bind tidak ngapa-ngapain (terverifikasi end-to-end via smoke test).
 
@@ -289,7 +292,7 @@ satu-satunya bagian yang belum 100% M3.
 | `PipeWireService` | `wpctl` get-volume/status (async paralel) | Nilai terakhir dipertahankan; nama sink disanitasi anti-injeksi |
 | `NetworkManager` / `BluetoothService` | `nmcli` / `bluetoothctl` via D-Bus + CLI (async, watchdog) | Parse defensif (SSID ber-kolon aman); argv langsung tanpa shell |
 | `NotificationDaemon` | `org.freedesktop.Notifications` di D-Bus sesi | Gagal registrasi → no-op anggun + DND switch |
-| `StatusNotifierTray` | `org.kde.StatusNotifierWatcher` (async) + enumerasi lokal | Tray demo statis di QML |
+| `StatusNotifierTray` | `org.kde.StatusNotifierWatcher` (async) + enumerasi lokal | Switch "Native tray" memuat `TrayBridge.qml` bila plugin ada; fallback statis |
 | `MatugenEngine` | Sampling `QImage` di worker thread + `matugen` fire-and-forget | Counter generasi anti-race; warna default `#a8c7fa` |
 | `PamAuth` | `libpam` bila ada (`HAS_PAM`), `QtConcurrent` + `QPointer` guard | Build tanpa PAM → accept (mode demo) |
 
@@ -387,7 +390,8 @@ vxvicfg-shell/
 > brightness (`brightnessctl`), Wi-Fi/BT toggle (`nmcli`/`bluetoothctl`),
 > wallpaper (`swww`/`matugen`), launcher aplikasi, plus polling telemetri
 > (workspace aktif, volume/mute, brightness, NVIDIA) yang tersinkron ke UI.
-> PAM asli aktif bila `libvxvicfg_core` terpasang.
+> PAM asli aktif bila `libvxvicfg_core` terpasang; form login juga menerima
+> `pamtester` (`Theme.hasBin`) sebagai jalur auth PAM asli tanpa plugin.
 
 ---
 
